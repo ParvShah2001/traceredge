@@ -107,11 +107,11 @@ export function StockTable({
           {/* Table Header */}
           <thead>
             <tr className="border-b border-dark-800 bg-dark-950/80 text-slate-400 font-semibold uppercase tracking-wider select-none">
-              <th className="py-3 px-3 w-10 text-center">⭐</th>
+              <th className="py-2.5 sm:py-3 px-2 sm:px-3 w-9 text-center sticky left-0 z-20 bg-dark-950 sm:static sm:bg-transparent">⭐</th>
               
               <th
                 onClick={() => onSort("symbol")}
-                className="py-3 px-3 cursor-pointer hover:text-white transition group"
+                className="py-2.5 sm:py-3 px-2 sm:px-3 cursor-pointer hover:text-white transition group sticky left-9 z-20 bg-dark-950 sm:static sm:bg-transparent border-r sm:border-r-0 border-dark-800"
               >
                 <div className="flex items-center gap-1.5">
                   <span>Stock</span>
@@ -253,7 +253,7 @@ export function StockTable({
                   }`}
                 >
                   {/* Bookmark Star */}
-                  <td className="py-3 px-3 text-center">
+                  <td className="py-2.5 sm:py-3 px-2 sm:px-3 text-center sticky left-0 z-10 bg-dark-900 sm:static sm:bg-transparent">
                     <button
                       onClick={() => onToggleWatchlist(stock.symbol)}
                       className="p-1 rounded hover:bg-dark-800 transition"
@@ -270,7 +270,7 @@ export function StockTable({
                   </td>
 
                   {/* Stock Symbol & Company */}
-                  <td className="py-3 px-3">
+                  <td className="py-2.5 sm:py-3 px-2 sm:px-3 sticky left-9 z-10 bg-dark-900 sm:static sm:bg-transparent border-r sm:border-r-0 border-dark-800">
                     <div className="flex flex-col">
                       <div className="flex items-center gap-1.5">
                         <span

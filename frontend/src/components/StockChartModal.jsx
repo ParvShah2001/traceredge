@@ -52,23 +52,24 @@ export function StockChartModal({ stock, onClose, onSetAlert }) {
           chartRef.current = null;
         }
 
+        const isLight = document.documentElement.classList.contains("light");
         const chart = createChart(chartContainerRef.current, {
           layout: {
-            background: { type: ColorType.Solid, color: "#0b111e" },
-            textColor: "#94a3b8"
+            background: { type: ColorType.Solid, color: isLight ? "#ffffff" : "#0b111e" },
+            textColor: isLight ? "#475569" : "#94a3b8"
           },
           grid: {
-            vertLines: { color: "#1e293b" },
-            horzLines: { color: "#1e293b" }
+            vertLines: { color: isLight ? "#f1f5f9" : "#1e293b" },
+            horzLines: { color: isLight ? "#f1f5f9" : "#1e293b" }
           },
           crosshair: {
             mode: 1
           },
           rightPriceScale: {
-            borderColor: "#1e293b"
+            borderColor: isLight ? "#e2e8f0" : "#1e293b"
           },
           timeScale: {
-            borderColor: "#1e293b",
+            borderColor: isLight ? "#e2e8f0" : "#1e293b",
             timeVisible: timeframe === "1D" || timeframe === "1W"
           },
           width: chartContainerRef.current.clientWidth,

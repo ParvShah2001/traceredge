@@ -6,16 +6,16 @@ import {
   Volume2,
   VolumeX,
   Radio,
-  Clock,
   Bell,
   RefreshCw,
   Sun,
   Moon,
-  ShieldCheck
+  ShieldCheck,
+  Zap
 } from "lucide-react";
 
 export function MarketHeader({
-  indices,
+  indices = [],
   marketStatus,
   connectionStatus,
   lastTickTime,
@@ -36,34 +36,39 @@ export function MarketHeader({
   const advancePct = breadth.total > 0 ? Math.round((breadth.advances / breadth.total) * 100) : 50;
 
   return (
-    <header className="border-b border-dark-800 bg-dark-900/90 backdrop-blur sticky top-0 z-40">
-      {/* Top Bar: Connection, Market State, Breadth & Audio */}
-      <div className="max-w-[1700px] mx-auto px-4 py-2 flex flex-wrap items-center justify-between text-xs gap-3">
-        {/* Left: Branding & Status Badges */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 font-bold text-base text-white tracking-tight">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-dark-950 font-black text-lg shadow-lg shadow-emerald-500/20">
-              ₹
+    <header className="border-b border-dark-800 bg-dark-900/95 backdrop-blur-md sticky top-0 z-40 transition-colors">
+      {/* Primary Bar */}
+      <div className="max-w-[1700px] mx-auto px-3 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between gap-2 sm:gap-4 text-xs">
+        {/* Left: TracerEdge Brand & Session Status */}
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          {/* Logo */}
+          <div className="flex items-center gap-2 font-black tracking-tight select-none">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-500 text-dark-950 flex items-center justify-center text-sm font-black shadow-sm shadow-emerald-500/20">
+              <Zap className="w-4 h-4 fill-current" />
             </div>
-            <span>
-              BHARAT<span className="text-emerald-400">SCREENER</span>
-            </span>
-            <span className="text-[10px] bg-dark-800 text-slate-400 px-1.5 py-0.5 rounded font-mono border border-dark-700">
-              NSE & BSE
-            </span>
+            <div className="flex items-baseline gap-1">
+              <span className="text-sm sm:text-base font-extrabold tracking-tight text-white">
+                TRACER<span className="text-emerald-500 dark:text-emerald-400">EDGE</span>
+              </span>
+              <span className="hidden sm:inline-block text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-dark-800 text-slate-400 border border-dark-750">
+                NSE / BSE
+              </span>
+            </div>
           </div>
 
-          <div className="h-4 w-px bg-dark-700 hidden sm:block" />
+          <div className="h-4 w-px bg-dark-800 hidden md:block" />
 
-          {/* Market Status Pill */}
-          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border ${
-            isMarketOpen
-              ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
-              : "bg-emerald-950/40 border-emerald-500/30 text-emerald-300"
-          }`}>
+          {/* Session Status Pill */}
+          <div
+            className={`flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-full border text-[11px] font-medium transition ${
+              isMarketOpen
+                ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
+                : "bg-dark-850 border-dark-750 text-slate-300"
+            }`}
+          >
             <span
               className={`w-2 h-2 rounded-full ${
-                isMarketOpen ? "bg-emerald-400 animate-ping" : "bg-emerald-400"
+                isMarketOpen ? "bg-emerald-400 animate-ping" : "bg-emerald-500"
               }`}
             />
             {isMarketOpen ? (
@@ -71,89 +76,71 @@ export function MarketHeader({
                 LIVE SESSION
               </span>
             ) : (
-              <span className="font-semibold text-emerald-400 flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                MARKET CLOSED • OFFICIAL EOD SETTLEMENT
+              <span className="flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span className="hidden xs:inline">EOD SETTLEMENT VERIFIED</span>
+                <span className="xs:hidden">MARKET CLOSED</span>
               </span>
             )}
-            <span className="text-slate-500 font-mono hidden md:inline">
-              09:15 - 15:30 IST
+            <span className="text-slate-400 font-mono hidden lg:inline">
+              09:15–15:30 IST
             </span>
           </div>
 
-          {/* On-demand EOD Close Verification Button */}
+          {/* EOD Verification Trigger (Desktop & Tablet) */}
           {!isMarketOpen && onVerifyEodClose && (
             <button
               onClick={onVerifyEodClose}
               disabled={isVerifyingEod}
-              className="hidden md:flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[11px] font-medium text-emerald-400 hover:bg-emerald-500/20 transition disabled:opacity-50"
-              title="Verify & lock official exchange Bhavcopy closing prices directly from NSE & BSE"
+              className="hidden md:flex items-center gap-1 px-2.5 py-1 rounded-full bg-dark-850 hover:bg-dark-800 text-slate-300 hover:text-emerald-400 border border-dark-750 transition text-[11px] disabled:opacity-40"
+              title="Verify & lock official Bhavcopy closing prices directly from NSE & BSE"
             >
               <RefreshCw className={`w-3 h-3 ${isVerifyingEod ? "animate-spin text-emerald-400" : ""}`} />
               <span>Verify Official EOD</span>
             </button>
           )}
 
-          {/* WebSocket Status */}
-          <div className="hidden lg:flex items-center gap-1.5 px-2 py-0.5 rounded bg-dark-850 text-slate-400 border border-dark-800">
-            <Radio
-              className={`w-3 h-3 ${
-                connectionStatus === "connected"
-                  ? "text-emerald-400 animate-pulse"
-                  : "text-rose-400"
-              }`}
-            />
-            <span className="capitalize">{connectionStatus}</span>
-            {lastTickTime && (
-              <span className="text-[11px] text-slate-500 font-mono">
-                ({lastTickTime})
-              </span>
-            )}
-          </div>
-          {/* Indian Market Universe Stats & Live Sync */}
-          <div className="hidden xl:flex items-center gap-2 px-2.5 py-1 rounded-full bg-dark-850 border border-dark-700 text-xs">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            <span className="text-slate-300 font-medium">
-              Universe:{" "}
-              <strong className="text-emerald-400 font-mono">
-                {universeStats?.stats?.total_stocks ? universeStats.stats.total_stocks.toLocaleString() : "7,640"}
-              </strong>{" "}
-              Equities (<span className="text-emerald-400 font-semibold font-mono">2,587</span> NSE • <span className="text-amber-400 font-semibold font-mono">5,053</span> BSE)
+          {/* Universe Meta Info */}
+          <div className="hidden xl:flex items-center gap-2 px-2.5 py-1 rounded-full bg-dark-850 border border-dark-750 text-slate-400 text-[11px]">
+            <span>
+              Universe: <strong className="text-emerald-500 dark:text-emerald-400 font-mono font-semibold">{universeStats?.stats?.total_stocks ? universeStats.stats.total_stocks.toLocaleString() : "7,640"}</strong>
             </span>
+            <span className="text-slate-500">•</span>
+            <span>2,587 NSE</span>
+            <span className="text-slate-500">•</span>
+            <span>5,053 BSE</span>
             {onSyncUniverse && (
               <button
                 onClick={onSyncUniverse}
                 disabled={isSyncingUniverse}
-                className="p-1 rounded hover:bg-dark-750 text-slate-400 hover:text-emerald-400 transition disabled:opacity-40"
-                title={`Last synced: ${universeStats?.last_synced || "Continuous"}. Click to refresh official masters from NSE & BSE.`}
+                className="p-0.5 rounded hover:text-emerald-400 transition"
+                title="Refresh master lists"
               >
-                <RefreshCw
-                  className={`w-3 h-3 ${isSyncingUniverse ? "animate-spin text-emerald-400" : ""}`}
-                />
+                <RefreshCw className={`w-2.5 h-2.5 ${isSyncingUniverse ? "animate-spin text-emerald-400" : ""}`} />
               </button>
             )}
           </div>
         </div>
 
-        {/* Right: Market Breadth, Alerts, Sound */}
-        <div className="flex items-center gap-4">
-          {/* Market Breadth Bar */}
-          <div className="hidden sm:flex items-center gap-2 bg-dark-850 px-3 py-1 rounded border border-dark-800">
-            <span className="text-slate-400 font-medium">Market Breadth:</span>
-            <span className="text-emerald-400 font-semibold font-tabular flex items-center gap-0.5">
+        {/* Right: Breadth, Audio, Theme, Alerts */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          {/* Market Breadth Indicator (Tablet & Desktop) */}
+          <div className="hidden sm:flex items-center gap-2 bg-dark-850 px-2.5 py-1 rounded-lg border border-dark-800 text-[11px]">
+            <span className="text-slate-400 font-medium">Breadth:</span>
+            <span className="text-emerald-600 dark:text-emerald-400 font-semibold font-tabular">
               ▲ {breadth.advances}
             </span>
-            <div className="w-16 h-2 bg-dark-750 rounded-full overflow-hidden flex">
+            <div className="w-14 h-1.5 bg-dark-750 rounded-full overflow-hidden flex">
               <div
-                className="bg-emerald-500 h-full transition-all duration-500"
+                className="bg-emerald-500 h-full transition-all duration-300"
                 style={{ width: `${advancePct}%` }}
               />
               <div
-                className="bg-rose-500 h-full transition-all duration-500"
+                className="bg-rose-500 h-full transition-all duration-300"
                 style={{ width: `${100 - advancePct}%` }}
               />
             </div>
-            <span className="text-rose-400 font-semibold font-tabular flex items-center gap-0.5">
+            <span className="text-rose-600 dark:text-rose-400 font-semibold font-tabular">
               ▼ {breadth.declines}
             </span>
           </div>
@@ -161,36 +148,38 @@ export function MarketHeader({
           {/* Sound Toggle */}
           <button
             onClick={onToggleSound}
-            className={`p-1.5 rounded transition border ${
+            className={`p-1.5 rounded-lg transition border text-xs ${
               soundEnabled
-                ? "bg-dark-800 text-emerald-400 border-dark-700 hover:bg-dark-750"
-                : "bg-dark-850 text-slate-500 border-dark-800 hover:text-slate-400"
+                ? "bg-dark-800 text-emerald-500 dark:text-emerald-400 border-dark-700 hover:bg-dark-750"
+                : "bg-dark-850 text-slate-400 border-dark-800 hover:text-slate-300"
             }`}
             title={soundEnabled ? "Mute Tick Sounds" : "Enable Tick Sounds"}
+            aria-label="Toggle Sound"
           >
             {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
           </button>
 
-          {/* Dark / Light Theme Toggle */}
+          {/* Theme Switcher Toggle (Sun / Moon) */}
           <button
             onClick={onToggleTheme}
-            className={`p-1.5 rounded transition border flex items-center justify-center ${
+            className={`p-1.5 rounded-lg transition border flex items-center justify-center text-xs ${
               theme === "light"
-                ? "bg-amber-100 text-amber-600 border-amber-300 hover:bg-amber-200"
+                ? "bg-amber-100 text-amber-700 border-amber-300 hover:bg-amber-200"
                 : "bg-dark-800 text-amber-400 border-dark-700 hover:bg-dark-750"
             }`}
-            title={theme === "light" ? "Switch to Dark Theme" : "Switch to Light Theme"}
+            title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
+            aria-label="Toggle Theme"
           >
-            {theme === "light" ? <Sun className="w-4 h-4 text-amber-600" /> : <Moon className="w-4 h-4 text-indigo-300" />}
+            {theme === "light" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
 
-          {/* Alert Bell */}
+          {/* Alerts Drawer Button */}
           <button
             onClick={onOpenAlerts}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-dark-800 hover:bg-dark-750 border border-dark-700 text-slate-300 relative transition"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-dark-850 hover:bg-dark-800 border border-dark-750 text-slate-300 transition text-xs font-medium"
           >
             <Bell className="w-3.5 h-3.5 text-amber-400" />
-            <span className="font-medium">Alerts</span>
+            <span className="hidden sm:inline">Alerts</span>
             {activeAlertCount > 0 && (
               <span className="w-4 h-4 bg-amber-500 text-dark-950 font-bold rounded-full text-[10px] flex items-center justify-center">
                 {activeAlertCount}
@@ -200,12 +189,12 @@ export function MarketHeader({
         </div>
       </div>
 
-      {/* Indices Ticker Tape */}
-      <div className="border-t border-dark-800/80 bg-dark-950/80 overflow-x-auto no-scrollbar py-2 px-4">
-        <div className="max-w-[1700px] mx-auto flex items-center gap-4 min-w-max">
-          <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1 pr-2 border-r border-dark-800">
-            <Activity className="w-3.5 h-3.5 text-slate-400" />
-            <span>Key Indices</span>
+      {/* Indices Ticker Tape (Touch scrollable, mobile-optimized) */}
+      <div className="border-t border-dark-800/80 bg-dark-950/70 overflow-x-auto no-scrollbar py-1.5 px-3 sm:px-4">
+        <div className="max-w-[1700px] mx-auto flex items-center gap-2.5 sm:gap-3 min-w-max">
+          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1 pr-2 border-r border-dark-800">
+            <Activity className="w-3 h-3 text-emerald-400" />
+            <span>Indices</span>
           </div>
 
           {indices.map((idx) => {
@@ -213,18 +202,15 @@ export function MarketHeader({
             return (
               <div
                 key={idx.symbol}
-                className="flex items-center gap-2 px-3 py-1 rounded bg-dark-900 border border-dark-800/80 hover:border-dark-700 transition"
+                className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-dark-900 border border-dark-800 hover:border-dark-700 transition select-none text-xs"
               >
-                <div className="flex items-baseline gap-1.5">
-                  <span className="font-bold text-slate-200 text-xs">
+                <div className="flex items-baseline gap-1">
+                  <span className="font-semibold text-slate-300">
                     {idx.symbol}
-                  </span>
-                  <span className="text-[10px] text-slate-500">
-                    ({idx.exchange})
                   </span>
                 </div>
 
-                <span className="font-semibold text-xs text-white font-tabular">
+                <span className="font-mono font-semibold text-white font-tabular">
                   {Number(idx.value).toLocaleString("en-IN", {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
@@ -232,8 +218,8 @@ export function MarketHeader({
                 </span>
 
                 <div
-                  className={`flex items-center gap-0.5 text-xs font-semibold font-tabular ${
-                    isBull ? "text-emerald-400" : "text-rose-400"
+                  className={`flex items-center gap-0.5 font-mono text-[11px] font-medium font-tabular ${
+                    isBull ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
                   }`}
                 >
                   {isBull ? (
@@ -243,11 +229,7 @@ export function MarketHeader({
                   )}
                   <span>
                     {isBull ? "+" : ""}
-                    {idx.change > 0 ? idx.change.toFixed(2) : idx.change.toFixed(2)}
-                  </span>
-                  <span>
-                    ({isBull ? "+" : ""}
-                    {idx.change_pct.toFixed(2)}%)
+                    {Number(idx.change_pct).toFixed(2)}%
                   </span>
                 </div>
               </div>

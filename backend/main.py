@@ -2,6 +2,7 @@
 FastAPI Backend Application for Indian Stock Screener (NSE / BSE).
 Provides REST endpoints and real-time WebSockets for live tickers and screener filters.
 """
+import os
 import asyncio
 import json
 import logging
@@ -10,6 +11,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from data_engine import engine
@@ -103,9 +106,9 @@ async def lifespan(app: FastAPI):
     universe_task.cancel()
 
 
-app = FastAPI(title="India NSE/BSE Stock Screener API", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title="TracerEdge - Institutional Indian Stock Screener", version="2.0.0", lifespan=lifespan)
 
-# Allow CORS for local dev Vite server and any host
+# Allow CORS for any host
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -115,10 +118,12 @@ app.add_middleware(
 )
 
 
-@app.get("/")
-def root():
+@app.get("/api/info")
+def get_info():
+    """System information and exchange tracking metadata."""
     from universe_manager import universe_manager
     return {
+        "app": "TracerEdge",
         "status": "online",
         "market": "NSE / BSE India",
         "stocks_tracked": len(engine.stocks),
@@ -365,6 +370,33 @@ async def websocket_live_endpoint(websocket: WebSocket):
         manager.disconnect(websocket)
 
 
+# ==============================================================================
+# Production Single-Server SPA Serving (FastAPI serves built frontend at /)
+# ==============================================================================
+DIST_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend", "dist"))
+
+if os.path.exists(DIST_DIR):
+    assets_dir = os.path.join(DIST_DIR, "assets")
+    if os.path.exists(assets_dir):
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        # Ignore API and WS paths (already handled by router above)
+        if full_path.startswith("api/") or full_path.startswith("ws/"):
+            return {"detail": "Endpoint not found"}
+        # Serve static assets placed at dist root (e.g. favicon.svg, icons.svg)
+        if full_path:
+            direct_file = os.path.join(DIST_DIR, full_path)
+            if os.path.isfile(direct_file):
+                return FileResponse(direct_file)
+        # Default fallback to index.html for Single Page Application
+        index_file = os.path.join(DIST_DIR, "index.html")
+        if os.path.exists(index_file):
+            return FileResponse(index_file)
+        return {"name": "TracerEdge", "status": "online"}
+
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

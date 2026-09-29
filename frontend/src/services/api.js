@@ -1,6 +1,12 @@
-// API service for India NSE/BSE Screener Backend
-const API_BASE = "http://127.0.0.1:8000";
-const WS_BASE = "ws://127.0.0.1:8000";
+// API and WebSocket configuration for TracerEdge (supports Cloudflare Pages & Unified Hosting)
+const envApi = import.meta.env.VITE_API_URL;
+const envWs = import.meta.env.VITE_WS_URL;
+
+const isDev = typeof window !== "undefined" && window.location.port === "5173";
+const API_BASE = envApi || (isDev ? "http://127.0.0.1:8000" : "");
+const wsProtocol = typeof window !== "undefined" && window.location.protocol === "https:" ? "wss:" : "ws:";
+const defaultWs = typeof window !== "undefined" ? `${wsProtocol}//${window.location.host}` : "ws://127.0.0.1:8000";
+const WS_BASE = envWs || (isDev ? "ws://127.0.0.1:8000" : (envApi ? envApi.replace(/^http/, "ws") : defaultWs));
 
 export async function fetchIndices() {
   const res = await fetch(`${API_BASE}/api/market/indices`);
