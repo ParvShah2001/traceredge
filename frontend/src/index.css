@@ -1,0 +1,179 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background-color: #070b12;
+  color: #f1f5f9;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  overflow-x: hidden;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0b111e;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* Financial number tabular figures */
+.font-tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Subtle glow effects */
+.glow-bull {
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+}
+
+.glow-bear {
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+}
+
+/* ==========================================================================
+   Light Theme Comprehensive Styling
+   ========================================================================== */
+html.light {
+  color-scheme: light;
+}
+
+html.light body {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+/* Background overrides in light theme */
+html.light .bg-dark-950,
+html.light .bg-\[\#070b12\],
+html.light .bg-\[\#070b12\]\/80 {
+  background-color: #f8fafc !important;
+}
+
+html.light .bg-dark-900,
+html.light .bg-\[\#0b111e\],
+html.light .bg-dark-900\/90,
+html.light .bg-dark-900\/80 {
+  background-color: #ffffff !important;
+}
+
+html.light .bg-dark-850,
+html.light .bg-\[\#0f172a\],
+html.light .bg-dark-850\/90 {
+  background-color: #f1f5f9 !important;
+}
+
+html.light .bg-dark-800,
+html.light .bg-\[\#141e33\] {
+  background-color: #f1f5f9 !important;
+}
+
+html.light .bg-dark-750,
+html.light .bg-\[\#1a2742\] {
+  background-color: #e2e8f0 !important;
+}
+
+html.light .bg-dark-700,
+html.light .bg-\[\#1e293b\] {
+  background-color: #e2e8f0 !important;
+}
+
+/* Border overrides */
+html.light .border-dark-900,
+html.light .border-dark-800,
+html.light .border-dark-800\/80,
+html.light .border-dark-700,
+html.light .border-slate-800,
+html.light .border-slate-800\/80,
+html.light .border-slate-800\/60,
+html.light .border-\[\#1e293b\] {
+  border-color: #e2e8f0 !important;
+}
+
+html.light .border-slate-700,
+html.light .border-slate-700\/50,
+html.light .border-slate-700\/60 {
+  border-color: #cbd5e1 !important;
+}
+
+/* Hover overrides */
+html.light .hover\:bg-dark-800:hover,
+html.light .hover\:bg-dark-850:hover,
+html.light .hover\:bg-dark-750:hover,
+html.light .hover\:bg-slate-800\/40:hover {
+  background-color: #f1f5f9 !important;
+}
+
+/* Text overrides */
+html.light .text-white,
+html.light .text-slate-100,
+html.light .text-slate-200 {
+  color: #0f172a !important;
+}
+
+html.light .text-slate-300 {
+  color: #334155 !important;
+}
+
+html.light .text-slate-400 {
+  color: #64748b !important;
+}
+
+html.light .text-slate-500 {
+  color: #64748b !important;
+}
+
+/* Form inputs & buttons in light mode */
+html.light input,
+html.light select,
+html.light textarea {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+html.light .divide-dark-800\/60 > * {
+  border-color: #e2e8f0 !important;
+}
+
+html.light tr:hover {
+  background-color: #f8fafc !important;
+}
+
+html.light ::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+html.light ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Soft card shadow in light mode */
+html.light .bg-dark-900,
+html.light .bg-dark-850 {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+}
