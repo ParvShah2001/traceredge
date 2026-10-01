@@ -25,28 +25,35 @@ export function useLiveMarket(filters = {}) {
   const reconnectTimeoutRef = useRef(null);
   const filtersRef = useRef(filters);
   filtersRef.current = filters;
+  const reqSeqRef = useRef(0);
 
   // Initial load or filter change
   const reloadStocks = useCallback(async () => {
+    const currentSeq = ++reqSeqRef.current;
     try {
       const data = await fetchStocks({
         ...filtersRef.current,
         page,
         page_size: pageSize
       });
+      if (currentSeq !== reqSeqRef.current) {
+        return; // Stale request dropped to prevent lag/race condition
+      }
       setStocks(data.stocks || []);
       setTotal(data.total || (data.stocks ? data.stocks.length : 0));
       setTotalPages(data.total_pages || 1);
     } catch (e) {
-      console.error("Error fetching stocks:", e);
+      if (currentSeq === reqSeqRef.current) {
+        console.error("Error fetching stocks:", e);
+      }
     }
   }, [page, pageSize]);
 
   // Auto-reset page to 1 when search or filter criteria change
   const prevFilterHash = useRef("");
   const filterCriteriaHash = JSON.stringify([
-    filters.preset,
     filters.search,
+    filters.exchange,
     filters.sort_by,
     filters.sort_dir,
     filters.custom_rules,
@@ -63,8 +70,8 @@ export function useLiveMarket(filters = {}) {
   useEffect(() => {
     reloadStocks();
   }, [
-    filters.preset,
     filters.search,
+    filters.exchange,
     filters.sort_by,
     filters.sort_dir,
     JSON.stringify(filters.custom_rules),

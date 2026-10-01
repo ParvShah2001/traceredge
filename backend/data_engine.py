@@ -1202,9 +1202,9 @@ class MarketDataEngine:
         new_count, total_count, stats = universe_manager.sync_now()
         added_to_engine = 0
         for meta in universe_manager.stocks_list:
-            sym = meta["symbol"]
-            if sym not in self.stocks:
-                self.stocks[sym] = self._create_default_stock(meta)
+            stock_id = meta["id"]
+            if stock_id not in self.stocks:
+                self.stocks[stock_id] = self._create_default_stock(meta)
                 added_to_engine += 1
 
         logger.info(f"Universe synchronized: {new_count} new stocks from exchanges. {added_to_engine} added to live engine memory. Total: {len(self.stocks)}")

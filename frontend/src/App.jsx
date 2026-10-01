@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { MarketHeader } from "./components/MarketHeader";
-import { QuickPresets } from "./components/QuickPresets";
 import { FilterBar } from "./components/FilterBar";
 import { StockTable } from "./components/StockTable";
 import { StockChartModal } from "./components/StockChartModal";
@@ -10,35 +9,16 @@ import { fetchUniverseStatus, triggerUniverseSync, triggerVerifyEodClose } from 
 import { CheckCircle2 } from "lucide-react";
 
 export function App() {
-  const [theme, setTheme] = useState(() => {
-    try {
-      return localStorage.getItem("screener_theme") || "dark";
-    } catch {
-      return "dark";
-    }
-  });
-
+  // Always enforce Pitch Black dark mode
   useEffect(() => {
+    document.documentElement.classList.add("dark");
+    document.documentElement.classList.remove("light");
     try {
-      localStorage.setItem("screener_theme", theme);
-      if (theme === "light") {
-        document.documentElement.classList.add("light");
-        document.documentElement.classList.remove("dark");
-      } else {
-        document.documentElement.classList.add("dark");
-        document.documentElement.classList.remove("light");
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
-  };
+      localStorage.setItem("screener_theme", "dark");
+    } catch {}
+  }, []);
 
   const [filters, setFilters] = useState({
-    preset: "all",
     search: "",
     exchange: "ALL",
     custom_rules: null,
@@ -128,23 +108,12 @@ export function App() {
     });
   };
 
-  // Preset selector
-  const handleSelectPreset = (presetId) => {
-    setFilters((prev) => ({
-      ...prev,
-      preset: presetId,
-      search: "",
-      exchange: "ALL"
-    }));
-  };
-
   // Apply custom rules from builder
   const handleApplyCustomRules = (rules, logic) => {
     setFilters((prev) => ({
       ...prev,
       custom_rules: rules,
       custom_logic: logic,
-      preset: "all",
       exchange: "ALL"
     }));
   };
@@ -161,7 +130,6 @@ export function App() {
   // Reset filters
   const handleResetFilters = () => {
     setFilters({
-      preset: "all",
       search: "",
       exchange: "ALL",
       custom_rules: null,
@@ -172,7 +140,7 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-black dark:bg-black dark:text-white flex flex-col font-sans selection:bg-zinc-200 dark:selection:bg-zinc-800 transition-colors">
+    <div className="min-h-screen bg-black text-white flex flex-col font-sans selection:bg-zinc-800 transition-colors">
       {/* Real-time Header */}
       <MarketHeader
         indices={indices}
@@ -182,17 +150,15 @@ export function App() {
         universeStats={universeStats}
         onSyncUniverse={handleSyncUniverse}
         isSyncingUniverse={isSyncingUniverse}
-        theme={theme}
-        onToggleTheme={toggleTheme}
         onVerifyEodClose={handleVerifyEodClose}
         isVerifyingEod={isVerifyingEod}
       />
 
       {/* Universe Sync Notification Toast */}
       {syncToast && (
-        <div className="bg-zinc-100 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 text-black dark:text-white px-4 py-2 text-xs flex items-center justify-between">
+        <div className="bg-zinc-900 border-b border-zinc-800 text-white px-4 py-2 text-xs flex items-center justify-between">
           <div className="flex items-center gap-2 max-w-[1700px] mx-auto w-full">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
             <span className="font-semibold">{syncToast}</span>
           </div>
         </div>
@@ -200,12 +166,6 @@ export function App() {
 
       {/* Main Container */}
       <main className="max-w-[1700px] w-full mx-auto px-3 sm:px-4 py-3 sm:py-4 flex flex-col gap-3 sm:gap-4 flex-1">
-        {/* Preset Strategies Bar */}
-        <QuickPresets
-          activePreset={filters.preset}
-          onSelectPreset={handleSelectPreset}
-        />
-
         {/* Filter Bar & Search */}
         <FilterBar
           filters={filters}
