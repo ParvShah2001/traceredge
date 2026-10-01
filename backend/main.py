@@ -49,8 +49,19 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 
+def clean_memory():
+    """Forces Python garbage collection and instructs Linux glibc to release unused heap pages."""
+    import gc
+    gc.collect()
+    try:
+        import ctypes
+        ctypes.CDLL("libc.so.6").malloc_trim(0)
+    except Exception:
+        pass
+
+
 async def live_ticks_broadcast_loop():
-    """Background task generating high-frequency live ticks during market hours or heartbeat when closed."""
+    """Background task generating live ticks during market hours or heartbeat when closed."""
     while True:
         try:
             if manager.active_connections:
@@ -58,12 +69,10 @@ async def live_ticks_broadcast_loop():
                 await manager.broadcast(payload)
         except Exception as e:
             logger.error(f"Error in broadcast loop: {e}")
-        # When market is open, stream fast live ticks every 750ms.
-        # When market is closed, NO SIMULATED TICKS: sleep 10s heartbeat snapshot.
         if engine.is_market_open():
-            await asyncio.sleep(0.75)
+            await asyncio.sleep(1.5 if manager.active_connections else 5.0)
         else:
-            await asyncio.sleep(10.0)
+            await asyncio.sleep(15.0)
 
 
 async def periodic_yahoo_sync():
@@ -72,13 +81,16 @@ async def periodic_yahoo_sync():
         try:
             if engine.is_market_open():
                 await engine.sync_real_data()
-                await asyncio.sleep(20)
+                clean_memory()
+                await asyncio.sleep(60)
             else:
                 if not getattr(engine, "_eod_verified", False):
                     await asyncio.to_thread(engine.verify_and_update_eod_closing_prices)
+                clean_memory()
                 await asyncio.sleep(300)
         except Exception as e:
             logger.error(f"Error in price sync loop: {e}")
+            clean_memory()
             await asyncio.sleep(60)
 
 

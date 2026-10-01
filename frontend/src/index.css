@@ -8,11 +8,12 @@
 
 body {
   margin: 0;
-  background-color: #070b12;
-  color: #f1f5f9;
+  background-color: #000000;
+  color: #ffffff;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   overflow-x: hidden;
   transition: background-color 0.15s ease, color 0.15s ease;
+  letter-spacing: -0.01em;
 }
 
 #root {
@@ -21,20 +22,20 @@ body {
   flex-direction: column;
 }
 
-/* Custom Scrollbars */
+/* Minimalist Monochrome Scrollbars */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
-  border-radius: 4px;
+  background: #27272a;
+  border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #3f3f46;
 }
 
 /* Financial number tabular figures */
@@ -42,13 +43,10 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Subtle glow effects */
-.glow-bull {
-  box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
-}
-
+/* Remove colored glows completely */
+.glow-bull,
 .glow-bear {
-  box-shadow: 0 0 12px rgba(239, 68, 68, 0.15);
+  box-shadow: none !important;
 }
 
 /* Utility to hide scrollbars cleanly */
@@ -61,22 +59,140 @@ body {
 }
 
 /* ==========================================================================
-   Light Theme - High-Contrast Institutional Styling
+   Ultra-Minimal Dark Theme (Pitch Black & Pure White)
+   ========================================================================== */
+html.dark body {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+/* Dark mode surfaces */
+html.dark .bg-dark-950 {
+  background-color: #000000 !important;
+}
+html.dark .bg-dark-900 {
+  background-color: #09090b !important;
+}
+html.dark .bg-dark-850 {
+  background-color: #121214 !important;
+}
+html.dark .bg-dark-800 {
+  background-color: #18181b !important;
+}
+html.dark .bg-dark-750 {
+  background-color: #222225 !important;
+}
+html.dark .bg-dark-700 {
+  background-color: #27272a !important;
+}
+
+/* Dark mode borders */
+html.dark .border-dark-900,
+html.dark .border-dark-850,
+html.dark .border-dark-800,
+html.dark .border-dark-750,
+html.dark .border-dark-700,
+html.dark .border-slate-800,
+html.dark .border-slate-700 {
+  border-color: #222225 !important;
+}
+
+/* Monochrome Text in Dark Mode */
+html.dark .text-emerald-400,
+html.dark .text-emerald-500,
+html.dark .text-teal-400,
+html.dark .text-teal-300,
+html.dark .text-bull,
+html.dark .text-bull-light {
+  color: #ffffff !important;
+}
+
+html.dark .text-rose-400,
+html.dark .text-rose-500,
+html.dark .text-red-400,
+html.dark .text-bear,
+html.dark .text-bear-light {
+  color: #8e8e93 !important;
+}
+
+html.dark .text-amber-400,
+html.dark .text-amber-500 {
+  color: #d4d4d8 !important;
+}
+
+/* Badges & Pills in Dark Mode */
+html.dark .bg-emerald-500,
+html.dark .bg-emerald-500\/10,
+html.dark .bg-emerald-500\/15,
+html.dark .bg-emerald-500\/20,
+html.dark .bg-emerald-500\/30 {
+  background-color: #18181b !important;
+  color: #ffffff !important;
+  border-color: #27272a !important;
+}
+
+html.dark .bg-rose-500,
+html.dark .bg-rose-500\/10,
+html.dark .bg-rose-500\/15,
+html.dark .bg-rose-500\/20,
+html.dark .bg-rose-500\/30 {
+  background-color: #121214 !important;
+  color: #a1a1aa !important;
+  border-color: #27272a !important;
+}
+
+html.dark .bg-amber-500,
+html.dark .bg-amber-500\/15,
+html.dark .bg-amber-500\/20 {
+  background-color: #18181b !important;
+  color: #e4e4e7 !important;
+  border-color: #27272a !important;
+}
+
+/* Table styling in Dark Mode */
+html.dark table thead tr {
+  background-color: #000000 !important;
+  border-color: #222225 !important;
+  color: #71717a !important;
+}
+html.dark table tbody tr {
+  border-color: #121214 !important;
+}
+html.dark table tbody tr:hover {
+  background-color: #0e0e11 !important;
+}
+
+/* Form Controls in Dark Mode */
+html.dark input,
+html.dark select,
+html.dark textarea {
+  background-color: #000000 !important;
+  border-color: #27272a !important;
+  color: #ffffff !important;
+}
+html.dark input:focus,
+html.dark select:focus {
+  border-color: #ffffff !important;
+  outline: none !important;
+}
+
+/* ==========================================================================
+   Ultra-Minimal Light Theme (Stark Pure White & Deep Black)
    ========================================================================== */
 html.light {
   color-scheme: light;
 }
 
 html.light body {
-  background-color: #f8fafc;
-  color: #0f172a;
+  background-color: #ffffff !important;
+  color: #09090b !important;
 }
 
 /* Background surfaces */
 html.light .bg-dark-950,
 html.light .bg-\[\#070b12\],
 html.light .bg-\[\#070b12\]\/80 {
-  background-color: #f8fafc !important;
+  background-color: #ffffff !important;
 }
 
 html.light .bg-dark-900,
@@ -90,22 +206,22 @@ html.light .bg-dark-850,
 html.light .bg-\[\#0f172a\],
 html.light .bg-dark-850\/90,
 html.light .bg-dark-850\/60 {
-  background-color: #f1f5f9 !important;
+  background-color: #f7f7f8 !important;
 }
 
 html.light .bg-dark-800,
 html.light .bg-\[\#141e33\] {
-  background-color: #e2e8f0 !important;
+  background-color: #f0f0f2 !important;
 }
 
 html.light .bg-dark-750,
 html.light .bg-\[\#1a2742\] {
-  background-color: #e2e8f0 !important;
+  background-color: #e4e4e7 !important;
 }
 
 html.light .bg-dark-700,
 html.light .bg-\[\#1e293b\] {
-  background-color: #cbd5e1 !important;
+  background-color: #d4d4d8 !important;
 }
 
 /* Borders */
@@ -119,97 +235,93 @@ html.light .border-dark-700,
 html.light .border-slate-800,
 html.light .border-slate-800\/80,
 html.light .border-slate-800\/60,
-html.light .border-\[\#1e293b\] {
-  border-color: #e2e8f0 !important;
-}
-
-html.light .border-slate-700,
-html.light .border-slate-700\/50,
-html.light .border-slate-700\/60 {
-  border-color: #cbd5e1 !important;
+html.light .border-\[\#1e293b\],
+html.light .border-slate-700 {
+  border-color: #e4e4e7 !important;
 }
 
 html.light .divide-dark-800 > *,
 html.light .divide-dark-800\/60 > * {
-  border-color: #f1f5f9 !important;
+  border-color: #e4e4e7 !important;
 }
 
 /* Hover surfaces */
 html.light .hover\:bg-dark-800:hover,
 html.light .hover\:bg-dark-850:hover,
 html.light .hover\:bg-dark-750:hover,
-html.light .hover\:bg-slate-800\/40:hover,
 html.light tr:hover {
-  background-color: #f1f5f9 !important;
+  background-color: #f4f4f5 !important;
 }
 
-/* Primary Text in Light Mode */
+/* Text in Light Mode */
 html.light .text-white,
 html.light .text-slate-100,
 html.light .text-slate-200 {
-  color: #0f172a !important; /* Rich deep slate */
+  color: #09090b !important;
 }
 
 html.light .text-slate-300 {
-  color: #1e293b !important;
+  color: #18181b !important;
 }
 
 html.light .text-slate-400 {
-  color: #334155 !important; /* Strong high-contrast charcoal */
+  color: #52525b !important;
 }
 
 html.light .text-slate-500 {
-  color: #64748b !important;
+  color: #71717a !important;
 }
 
-/* High-Contrast Bull / Bear Colors for Light Mode */
+/* High-Contrast Monochrome for Light Mode */
 html.light .text-emerald-400,
-html.light .text-emerald-300,
+html.light .text-emerald-500,
+html.light .text-teal-400,
+html.light .text-teal-300,
 html.light .text-bull,
 html.light .text-bull-light {
-  color: #047857 !important; /* Deep readable forest green */
+  color: #000000 !important;
+  font-weight: 600;
 }
 
 html.light .text-rose-400,
-html.light .text-rose-300,
+html.light .text-rose-500,
+html.light .text-red-400,
 html.light .text-bear,
 html.light .text-bear-light {
-  color: #dc2626 !important; /* Deep readable crimson red */
+  color: #71717a !important;
 }
 
 html.light .text-amber-400,
-html.light .text-amber-300 {
-  color: #b45309 !important; /* Deep amber/brown */
+html.light .text-amber-500 {
+  color: #27272a !important;
 }
 
-/* High-Contrast Pill Badges in Light Mode */
+/* Badges in Light Mode */
+html.light .bg-emerald-500,
 html.light .bg-emerald-500\/10,
 html.light .bg-emerald-500\/15,
 html.light .bg-emerald-500\/20 {
-  background-color: #ecfdf5 !important;
-  color: #065f46 !important;
-  border-color: #a7f3d0 !important;
+  background-color: #f4f4f5 !important;
+  color: #09090b !important;
+  border-color: #e4e4e7 !important;
 }
 
+html.light .bg-rose-500,
 html.light .bg-rose-500\/10,
 html.light .bg-rose-500\/15,
 html.light .bg-rose-500\/20 {
-  background-color: #fef2f2 !important;
-  color: #991b1b !important;
-  border-color: #fecaca !important;
+  background-color: #f4f4f5 !important;
+  color: #52525b !important;
+  border-color: #e4e4e7 !important;
 }
 
+html.light .bg-amber-500,
 html.light .bg-amber-500\/10,
 html.light .bg-amber-500\/15,
 html.light .bg-amber-500\/20 {
-  background-color: #fffbeb !important;
-  color: #92400e !important;
-  border-color: #fde68a !important;
-}
-
-html.light .bg-slate-700 {
-  background-color: #0f172a !important;
-  color: #ffffff !important;
+  background-color: #f4f4f5 !important;
+  color: #27272a !important;
+  border-color: #e4e4e7 !important;
 }
 
 /* Form Controls in Light Mode */
@@ -217,39 +329,39 @@ html.light input,
 html.light select,
 html.light textarea {
   background-color: #ffffff !important;
-  border-color: #cbd5e1 !important;
-  color: #0f172a !important;
+  border-color: #d4d4d8 !important;
+  color: #09090b !important;
+}
+
+html.light input:focus,
+html.light select:focus {
+  border-color: #000000 !important;
+  outline: none !important;
 }
 
 html.light input::placeholder,
 html.light textarea::placeholder {
-  color: #94a3b8 !important;
+  color: #a1a1aa !important;
 }
 
 /* Table Head and Cells in Light Mode */
 html.light table thead {
-  background-color: #f8fafc !important;
+  background-color: #ffffff !important;
 }
 
 html.light table thead th {
-  color: #334155 !important;
-  border-color: #e2e8f0 !important;
+  color: #71717a !important;
+  border-color: #e4e4e7 !important;
 }
 
 html.light table tbody td {
-  border-color: #f1f5f9 !important;
-}
-
-/* Card and Container Shadows */
-html.light .bg-dark-900,
-html.light .bg-dark-850 {
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+  border-color: #f4f4f5 !important;
 }
 
 html.light ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #d4d4d8;
 }
 
 html.light ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #a1a1aa;
 }

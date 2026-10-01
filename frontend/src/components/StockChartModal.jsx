@@ -55,21 +55,21 @@ export function StockChartModal({ stock, onClose, onSetAlert }) {
         const isLight = document.documentElement.classList.contains("light");
         const chart = createChart(chartContainerRef.current, {
           layout: {
-            background: { type: ColorType.Solid, color: isLight ? "#ffffff" : "#0b111e" },
-            textColor: isLight ? "#475569" : "#94a3b8"
+            background: { type: ColorType.Solid, color: isLight ? "#ffffff" : "#000000" },
+            textColor: isLight ? "#09090b" : "#a1a1aa"
           },
           grid: {
-            vertLines: { color: isLight ? "#f1f5f9" : "#1e293b" },
-            horzLines: { color: isLight ? "#f1f5f9" : "#1e293b" }
+            vertLines: { color: isLight ? "#f4f4f5" : "#18181b" },
+            horzLines: { color: isLight ? "#f4f4f5" : "#18181b" }
           },
           crosshair: {
             mode: 1
           },
           rightPriceScale: {
-            borderColor: isLight ? "#e2e8f0" : "#1e293b"
+            borderColor: isLight ? "#e4e4e7" : "#27272a"
           },
           timeScale: {
-            borderColor: isLight ? "#e2e8f0" : "#1e293b",
+            borderColor: isLight ? "#e4e4e7" : "#27272a",
             timeVisible: timeframe === "1D" || timeframe === "1W"
           },
           width: chartContainerRef.current.clientWidth,
@@ -77,24 +77,28 @@ export function StockChartModal({ stock, onClose, onSetAlert }) {
         });
         chartRef.current = chart;
 
-        // Candlestick Series (lightweight-charts v5)
+        // Candlestick Series (ultra minimal monochrome)
         const candlestickSeries = chart.addSeries(CandlestickSeries, {
-          upColor: "#10b981",
-          downColor: "#ef4444",
-          borderVisible: false,
-          wickUpColor: "#10b981",
-          wickDownColor: "#ef4444"
+          upColor: isLight ? "#000000" : "#ffffff",
+          downColor: isLight ? "#ffffff" : "#000000",
+          borderVisible: true,
+          borderColor: isLight ? "#000000" : "#71717a",
+          borderUpColor: isLight ? "#000000" : "#ffffff",
+          borderDownColor: isLight ? "#71717a" : "#71717a",
+          wickColor: isLight ? "#000000" : "#71717a",
+          wickUpColor: isLight ? "#000000" : "#ffffff",
+          wickDownColor: isLight ? "#71717a" : "#71717a"
         });
 
-        // Volume Series (lightweight-charts v5)
+        // Volume Series (ultra minimal monochrome)
         const volumeSeries = chart.addSeries(HistogramSeries, {
-          color: "#26a69a",
+          color: isLight ? "#e4e4e7" : "#27272a",
           priceFormat: {
             type: "volume"
           },
-          priceScaleId: "", // Overlay on separate scale
+          priceScaleId: "",
           scaleMargins: {
-            top: 0.8,
+            top: 0.82,
             bottom: 0
           }
         });
@@ -111,7 +115,9 @@ export function StockChartModal({ stock, onClose, onSetAlert }) {
         const volumeData = candles.map((c) => ({
           time: c.time,
           value: c.volume,
-          color: c.close >= c.open ? "rgba(16, 185, 129, 0.4)" : "rgba(239, 68, 68, 0.4)"
+          color: isLight
+            ? (c.close >= c.open ? "rgba(0, 0, 0, 0.4)" : "rgba(113, 113, 122, 0.3)")
+            : (c.close >= c.open ? "rgba(255, 255, 255, 0.4)" : "rgba(113, 113, 122, 0.3)")
         }));
 
         candlestickSeries.setData(candleData);

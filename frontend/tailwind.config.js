@@ -9,25 +9,25 @@ export default {
     extend: {
       colors: {
         bull: {
-          DEFAULT: '#10b981',
-          light: '#34d399',
-          dark: '#059669',
-          glow: 'rgba(16, 185, 129, 0.15)',
+          DEFAULT: '#ffffff',
+          light: '#ffffff',
+          dark: '#e4e4e7',
+          glow: 'rgba(255, 255, 255, 0.08)',
         },
         bear: {
-          DEFAULT: '#ef4444',
-          light: '#f87171',
-          dark: '#dc2626',
-          glow: 'rgba(239, 68, 68, 0.15)',
+          DEFAULT: '#888888',
+          light: '#a1a1aa',
+          dark: '#52525b',
+          glow: 'rgba(255, 255, 255, 0.04)',
         },
         dark: {
-          950: '#070b12',
-          900: '#0b111e',
-          850: '#0f172a',
-          800: '#141e33',
-          750: '#1a2742',
-          700: '#1e293b',
-          600: '#334155',
+          950: '#000000',
+          900: '#0a0a0a',
+          850: '#121212',
+          800: '#1c1c1c',
+          750: '#262626',
+          700: '#333333',
+          600: '#525252',
         }
       },
       animation: {
@@ -37,11 +37,11 @@ export default {
       },
       keyframes: {
         flashUp: {
-          '0%': { backgroundColor: 'rgba(16, 185, 129, 0.35)', color: '#34d399' },
+          '0%': { backgroundColor: 'rgba(255, 255, 255, 0.18)', color: '#ffffff' },
           '100%': { backgroundColor: 'transparent' },
         },
         flashDown: {
-          '0%': { backgroundColor: 'rgba(239, 68, 68, 0.35)', color: '#f87171' },
+          '0%': { backgroundColor: 'rgba(120, 120, 120, 0.2)', color: '#a1a1aa' },
           '100%': { backgroundColor: 'transparent' },
         },
         pulseSubtle: {

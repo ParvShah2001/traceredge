@@ -355,8 +355,7 @@ class MarketDataEngine:
 
         now_str = datetime.now(IST).strftime("%H:%M:%S IST")
 
-        # 1. High speed batch quotes via 0xramm architecture
-        unresolved_tickers = []
+        # 1. High speed batch quotes via 0xramm direct JSON architecture
         try:
             ramm_results = ramm_stock_api_client.fetch_quotes_direct(tickers)
             for t_str, stock in stock_by_ticker.items():
@@ -375,177 +374,88 @@ class MarketDataEngine:
                     stock["volume"] = q.get("volume") or stock.get("volume", 100000)
                     stock["is_live_synced"] = True
                     stock["last_updated"] = now_str
-                else:
-                    unresolved_tickers.append(t_str)
+            del ramm_results
         except Exception as e:
             logger.debug(f"0xramm batch enrich exception: {e}")
-            unresolved_tickers = tickers
-
-        # 2. Fallback to yfinance batch download for unresolved tickers
-        if unresolved_tickers:
-            try:
-                df = yf.download(unresolved_tickers, period="5d", interval="1d", group_by="ticker", threads=True, progress=False)
-                if not df.empty:
-                    for t_str in unresolved_tickers:
-                        stock = stock_by_ticker.get(t_str)
-                        if not stock:
-                            continue
-                        try:
-                            if t_str not in df.columns.levels[0]:
-                                continue
-                            stock_df = df[t_str].dropna(subset=["Close"])
-                            if stock_df.empty:
-                                continue
-                            lp = round(float(stock_df["Close"].iloc[-1]), 2)
-                            prev = round(float(stock_df["Close"].iloc[-2]), 2) if len(stock_df) >= 2 else round(lp * 0.99, 2)
-                            chg = round(lp - prev, 2)
-                            chg_pct = round((chg / prev) * 100, 2) if prev else 0.0
-
-                            stock["real_price"] = lp
-                            stock["price"] = lp
-                            stock["prev_close"] = prev
-                            stock["open"] = round(float(stock_df["Open"].iloc[-1]), 2)
-                            stock["day_high"] = round(float(stock_df["High"].iloc[-1]), 2)
-                            stock["day_low"] = round(float(stock_df["Low"].iloc[-1]), 2)
-                            stock["change"] = chg
-                            stock["change_pct"] = chg_pct
-                            stock["volume"] = int(stock_df["Volume"].iloc[-1])
-                            stock["is_live_synced"] = True
-                            stock["last_updated"] = now_str
-                        except Exception:
-                            pass
-            except Exception as e:
-                logger.debug(f"batch_enrich_stocks fallback error: {e}")
 
     def sync_real_data_batch_sync(self):
         """
-        Fast batch download for priority stocks & indices across both NSE and BSE.
+        Ultra-low memory batch sync using direct JSON quote endpoints.
+        Replaces heavy pandas/yfinance multi-threaded downloads to guarantee
+        sub-150MB total RAM footprint on Render / free-tier containers.
         """
         try:
-            logger.info("Executing fast batch sync for key NSE & BSE equities and indices...")
-            # Pick active large & midcaps from NSE + BSE + indices + active page
+            logger.info("Executing ultra-low memory batch sync for NSE/BSE equities & indices...")
+            now_str = datetime.now(IST).strftime("%H:%M:%S IST")
+
+            # Collect priority tickers
             nse_tickers = [f"{s['symbol']}.NS" for s in STOCKS_UNIVERSE]
             bse_tickers = [f"{s['symbol']}.BO" for s in STOCKS_UNIVERSE]
             idx_tickers = [idx["ticker"] for idx in self.indices.values()]
+            page_tickers = [self.stocks[sid]["ticker"] for sid in self.active_page_ids if sid in self.stocks][:30]
 
-            # Also include visible page tickers if any
-            page_tickers = [self.stocks[sid]["ticker"] for sid in self.active_page_ids if sid in self.stocks and not self.stocks[sid].get("is_live_synced")][:30]
+            combined_tickers = list(dict.fromkeys(nse_tickers + bse_tickers + idx_tickers + page_tickers))
 
-            combined_tickers = list(set(nse_tickers + bse_tickers + idx_tickers + page_tickers))
-
-            df = yf.download(combined_tickers, period="3mo", interval="1d", group_by="ticker", threads=True, progress=False)
-            if df.empty:
+            # Fetch quotes directly via pure HTTP JSON (0xramm direct client)
+            quotes = ramm_stock_api_client.fetch_quotes_direct(combined_tickers)
+            if not quotes:
                 return
 
-            now_str = datetime.now(IST).strftime("%H:%M:%S IST")
-
-            # 1. Update matching stocks in universe
+            # Update stocks
             for stock_id, stock in self.stocks.items():
                 t_str = stock.get("ticker")
-                if not t_str:
+                if not t_str or t_str not in quotes:
                     continue
-                try:
-                    if t_str not in df.columns.levels[0]:
-                        continue
-                    stock_df = df[t_str].dropna(subset=["Close"])
-                    if stock_df.empty or len(stock_df) < 2:
-                        continue
+                q = quotes[t_str]
+                if q.get("price") is None:
+                    continue
 
-                    last_close = round(float(stock_df["Close"].iloc[-1]), 2)
-                    prev_close = round(float(stock_df["Close"].iloc[-2]), 2)
-                    today_open = round(float(stock_df["Open"].iloc[-1]), 2)
-                    today_high = round(float(stock_df["High"].iloc[-1]), 2)
-                    today_low = round(float(stock_df["Low"].iloc[-1]), 2)
-                    today_vol = int(stock_df["Volume"].iloc[-1])
+                lp = q["price"]
+                prev_c = q.get("prev_close") or lp
+                stock["real_price"] = lp
+                stock["price"] = lp
+                stock["prev_close"] = prev_c
+                stock["open"] = q.get("open") or lp
+                stock["day_high"] = q.get("day_high") or lp
+                stock["day_low"] = q.get("day_low") or lp
+                stock["change"] = q.get("change") or round(lp - prev_c, 2)
+                stock["change_pct"] = q.get("change_pct") or (round(((lp - prev_c) / prev_c) * 100, 2) if prev_c else 0.0)
+                stock["volume"] = q.get("volume") or stock.get("volume", 100000)
+                if q.get("pe_ratio"):
+                    stock["pe_ratio"] = q["pe_ratio"]
+                if q.get("week_52_high"):
+                    stock["week_52_high"] = q["week_52_high"]
+                if q.get("week_52_low"):
+                    stock["week_52_low"] = q["week_52_low"]
+                stock["is_live_synced"] = True
+                stock["last_updated"] = now_str
 
-                    prev_high = round(float(stock_df["High"].iloc[-2]), 2)
-                    prev_low = round(float(stock_df["Low"].iloc[-2]), 2)
-                    prev_open = round(float(stock_df["Open"].iloc[-2]), 2)
-
-                    change = round(last_close - prev_close, 2)
-                    change_pct = round((change / prev_close) * 100, 2) if prev_close else 0.0
-
-                    avg_vol_20 = int(stock_df["Volume"].tail(20).mean()) if len(stock_df) >= 20 else today_vol
-                    vol_ratio = round(today_vol / max(avg_vol_20, 1), 2)
-
-                    week_52_high = round(float(stock_df["High"].max()), 2)
-                    week_52_low = round(float(stock_df["Low"].min()), 2)
-                    dist_high_pct = round(((last_close - week_52_high) / week_52_high) * 100, 2)
-                    dist_low_pct = round(((last_close - week_52_low) / week_52_low) * 100, 2)
-
-                    close_prices = stock_df["Close"].tolist()
-                    rsi = calculate_rsi(close_prices, 14)
-                    sma20 = calculate_sma(close_prices, 20)
-                    sma50 = calculate_sma(close_prices, 50)
-                    sma200 = calculate_sma(close_prices, 200) if len(close_prices) >= 200 else sma50 * 0.95
-                    ema20 = calculate_ema(close_prices, 20)
-                    macd_l, signal_l, hist_val = calculate_macd(close_prices)
-                    bb = calculate_bollinger_bands(close_prices, 20)
-                    eval_res = evaluate_technical_score(last_close, rsi, sma20, sma50, sma200, ema20, hist_val)
-
-                    stock["real_price"] = last_close
-                    stock["price"] = last_close
-                    stock["prev_close"] = prev_close
-                    stock["open"] = today_open
-                    stock["day_high"] = today_high
-                    stock["day_low"] = today_low
-                    stock["prev_high"] = prev_high
-                    stock["prev_low"] = prev_low
-                    stock["prev_open"] = prev_open
-                    stock["change"] = change
-                    stock["change_pct"] = change_pct
-                    stock["volume"] = today_vol
-                    stock["avg_volume_20d"] = avg_vol_20
-                    stock["volume_ratio"] = vol_ratio
-                    stock["week_52_high"] = week_52_high
-                    stock["week_52_low"] = week_52_low
-                    stock["dist_52w_high_pct"] = dist_high_pct
-                    stock["dist_52w_low_pct"] = dist_low_pct
-                    stock["rsi_14"] = rsi
-                    stock["sma_20"] = sma20
-                    stock["sma_50"] = sma50
-                    stock["sma_200"] = sma200
-                    stock["ema_20"] = ema20
-                    stock["macd"] = macd_l
-                    stock["macd_signal"] = signal_l
-                    stock["macd_hist"] = hist_val
-                    stock["bollinger"] = bb
-                    stock["tech_score"] = eval_res["score"]
-                    stock["tech_signal"] = eval_res["signal"]
-                    stock["tech_color"] = eval_res["badge_color"]
-                    stock["is_live_synced"] = True
-                    stock["last_updated"] = now_str
-                except Exception as ex:
-                    logger.debug(f"Error updating {stock_id}: {ex}")
-
-            # 2. Update Indices
+            # Update indices
             for idx in self.indices.values():
                 t_str = idx["ticker"]
-                try:
-                    if t_str not in df.columns.levels[0]:
-                        continue
-                    idx_df = df[t_str].dropna(subset=["Close"])
-                    if idx_df.empty or len(idx_df) < 2:
-                        continue
-
-                    cur_val = round(float(idx_df["Close"].iloc[-1]), 2)
-                    prev_val = round(float(idx_df["Close"].iloc[-2]), 2)
-                    chg = round(cur_val - prev_val, 2)
-                    chg_pct = round((chg / prev_val) * 100, 2) if prev_val else 0.0
-
-                    idx["real_value"] = cur_val
-                    idx["value"] = cur_val
-                    idx["prev_close"] = prev_val
-                    idx["change"] = chg
-                    idx["change_pct"] = chg_pct
-                    idx["high"] = round(float(idx_df["High"].iloc[-1]), 2)
-                    idx["low"] = round(float(idx_df["Low"].iloc[-1]), 2)
+                if t_str in quotes and quotes[t_str].get("price") is not None:
+                    q = quotes[t_str]
+                    lp = q["price"]
+                    prev_c = q.get("prev_close") or lp
+                    idx["real_value"] = lp
+                    idx["value"] = lp
+                    idx["prev_close"] = prev_c
+                    idx["change"] = q.get("change") or round(lp - prev_c, 2)
+                    idx["change_pct"] = q.get("change_pct") or (round(((lp - prev_c) / prev_c) * 100, 2) if prev_c else 0.0)
+                    idx["high"] = q.get("day_high") or lp
+                    idx["low"] = q.get("day_low") or lp
                     idx["last_updated"] = now_str
-                except Exception as ex:
-                    logger.debug(f"Error updating index {idx['symbol']}: {ex}")
 
             self.last_sync_time = datetime.now(IST)
-            logger.info("Batch sync completed successfully!")
+            del quotes
+            import gc
+            gc.collect()
+            try:
+                import ctypes
+                ctypes.CDLL("libc.so.6").malloc_trim(0)
+            except Exception:
+                pass
+            logger.info("Ultra-low memory batch sync completed successfully!")
         except Exception as e:
             logger.error(f"Error in batch sync: {e}")
 
@@ -780,6 +690,22 @@ class MarketDataEngine:
         self._eod_date = effective_date_str
         logger.info(f"Verified & locked official EOD closing settlement for {effective_date_str}: {nse_updated} NSE stocks, {bse_updated} BSE stocks.")
 
+        # Clean memory immediately after Bhavcopy processing
+        try:
+            del df_nse
+            del df_bse
+            del nse_data
+            del bse_data
+        except Exception:
+            pass
+        import gc
+        gc.collect()
+        try:
+            import ctypes
+            ctypes.CDLL("libc.so.6").malloc_trim(0)
+        except Exception:
+            pass
+
         return {
             "status": "success",
             "effective_date": effective_date_str,
@@ -966,7 +892,7 @@ class MarketDataEngine:
 
         # Exchange Filter (ALL, NSE, BSE)
         exchange = kwargs.get("exchange")
-        if exchange and exchange != "ALL":
+        if isinstance(exchange, str) and exchange != "ALL":
             f_ex = exchange.strip().upper()
             if f_ex == "NSE":
                 results = [s for s in results if s.get("exchange") == "NSE"]
@@ -1001,7 +927,7 @@ class MarketDataEngine:
 
         # 2. Search Filter (searches across all 7,640+ stocks by symbol, name, BSE code, ISIN)
         search = kwargs.get("search")
-        if search:
+        if isinstance(search, str) and search.strip():
             q = search.strip().upper()
             results = [
                 s for s in results
@@ -1013,11 +939,11 @@ class MarketDataEngine:
             ]
 
         sector = kwargs.get("sector")
-        if sector and sector != "ALL":
+        if isinstance(sector, str) and sector != "ALL":
             results = [s for s in results if s["sector"].lower() == sector.lower()]
 
         market_cap_cat = kwargs.get("market_cap_category")
-        if market_cap_cat and market_cap_cat != "ALL":
+        if isinstance(market_cap_cat, str) and market_cap_cat != "ALL":
             results = [s for s in results if s["market_cap_category"] == market_cap_cat]
 
         min_price = kwargs.get("min_price")
@@ -1201,6 +1127,8 @@ class MarketDataEngine:
                         "volume": int(row["Volume"])
                     })
                 if candles:
+                    if len(self.history_cache) > 25:
+                        self.history_cache.pop(next(iter(self.history_cache)), None)
                     self.history_cache[cache_key] = candles
                     return candles
         except Exception as e:

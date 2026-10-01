@@ -43,46 +43,46 @@ export function MarketHeader({
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           {/* Logo */}
           <div className="flex items-center gap-2 font-black tracking-tight select-none">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-500 text-dark-950 flex items-center justify-center text-sm font-black shadow-sm shadow-emerald-500/20">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-md bg-white text-black dark:bg-white dark:text-black flex items-center justify-center text-sm font-black">
               <Zap className="w-4 h-4 fill-current" />
             </div>
             <div className="flex items-baseline gap-1">
-              <span className="text-sm sm:text-base font-extrabold tracking-tight text-white">
-                TRACER<span className="text-emerald-500 dark:text-emerald-400">EDGE</span>
+              <span className="text-sm sm:text-base font-extrabold tracking-tight text-white dark:text-white">
+                TRACER<span className="text-zinc-400 dark:text-zinc-400">EDGE</span>
               </span>
-              <span className="hidden sm:inline-block text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-dark-800 text-slate-400 border border-dark-750">
+              <span className="hidden sm:inline-block text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-zinc-900 text-zinc-400 border border-zinc-800 dark:bg-zinc-950 dark:border-zinc-800">
                 NSE / BSE
               </span>
             </div>
           </div>
 
-          <div className="h-4 w-px bg-dark-800 hidden md:block" />
+          <div className="h-4 w-px bg-zinc-800 hidden md:block" />
 
           {/* Session Status Pill */}
           <div
-            className={`flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-full border text-[11px] font-medium transition ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-medium transition ${
               isMarketOpen
-                ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
-                : "bg-dark-850 border-dark-750 text-slate-300"
+                ? "bg-zinc-900 border-zinc-700 text-white"
+                : "bg-zinc-950 border-zinc-800 text-zinc-300"
             }`}
           >
             <span
-              className={`w-2 h-2 rounded-full ${
-                isMarketOpen ? "bg-emerald-400 animate-ping" : "bg-emerald-500"
+              className={`w-1.5 h-1.5 rounded-full ${
+                isMarketOpen ? "bg-white animate-ping" : "bg-zinc-400"
               }`}
             />
             {isMarketOpen ? (
-              <span className="font-semibold text-emerald-400">
+              <span className="font-semibold text-white">
                 LIVE SESSION
               </span>
             ) : (
-              <span className="flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
+              <span className="flex items-center gap-1 font-semibold text-zinc-200">
                 <ShieldCheck className="w-3.5 h-3.5" />
                 <span className="hidden xs:inline">EOD SETTLEMENT VERIFIED</span>
                 <span className="xs:hidden">MARKET CLOSED</span>
               </span>
             )}
-            <span className="text-slate-400 font-mono hidden lg:inline">
+            <span className="text-zinc-500 font-mono hidden lg:inline">
               09:15–15:30 IST
             </span>
           </div>
@@ -125,22 +125,22 @@ export function MarketHeader({
         {/* Right: Breadth, Audio, Theme, Alerts */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {/* Market Breadth Indicator (Tablet & Desktop) */}
-          <div className="hidden sm:flex items-center gap-2 bg-dark-850 px-2.5 py-1 rounded-lg border border-dark-800 text-[11px]">
-            <span className="text-slate-400 font-medium">Breadth:</span>
-            <span className="text-emerald-600 dark:text-emerald-400 font-semibold font-tabular">
+          <div className="hidden sm:flex items-center gap-2 bg-zinc-900 px-2.5 py-1 rounded-lg border border-zinc-800 text-[11px]">
+            <span className="text-zinc-400 font-medium">Breadth:</span>
+            <span className="text-white font-semibold font-tabular">
               ▲ {breadth.advances}
             </span>
-            <div className="w-14 h-1.5 bg-dark-750 rounded-full overflow-hidden flex">
+            <div className="w-14 h-1.5 bg-zinc-800 rounded-full overflow-hidden flex">
               <div
-                className="bg-emerald-500 h-full transition-all duration-300"
+                className="bg-white h-full transition-all duration-300"
                 style={{ width: `${advancePct}%` }}
               />
               <div
-                className="bg-rose-500 h-full transition-all duration-300"
+                className="bg-zinc-600 h-full transition-all duration-300"
                 style={{ width: `${100 - advancePct}%` }}
               />
             </div>
-            <span className="text-rose-600 dark:text-rose-400 font-semibold font-tabular">
+            <span className="text-zinc-400 font-semibold font-tabular">
               ▼ {breadth.declines}
             </span>
           </div>
@@ -150,8 +150,8 @@ export function MarketHeader({
             onClick={onToggleSound}
             className={`p-1.5 rounded-lg transition border text-xs ${
               soundEnabled
-                ? "bg-dark-800 text-emerald-500 dark:text-emerald-400 border-dark-700 hover:bg-dark-750"
-                : "bg-dark-850 text-slate-400 border-dark-800 hover:text-slate-300"
+                ? "bg-zinc-800 text-white border-zinc-700"
+                : "bg-zinc-900 text-zinc-500 border-zinc-800 hover:text-zinc-300"
             }`}
             title={soundEnabled ? "Mute Tick Sounds" : "Enable Tick Sounds"}
             aria-label="Toggle Sound"
@@ -162,11 +162,7 @@ export function MarketHeader({
           {/* Theme Switcher Toggle (Sun / Moon) */}
           <button
             onClick={onToggleTheme}
-            className={`p-1.5 rounded-lg transition border flex items-center justify-center text-xs ${
-              theme === "light"
-                ? "bg-amber-100 text-amber-700 border-amber-300 hover:bg-amber-200"
-                : "bg-dark-800 text-amber-400 border-dark-700 hover:bg-dark-750"
-            }`}
+            className="p-1.5 rounded-lg transition border flex items-center justify-center text-xs bg-zinc-900 text-zinc-300 border-zinc-800 hover:bg-zinc-800 hover:text-white"
             title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
             aria-label="Toggle Theme"
           >
@@ -176,12 +172,12 @@ export function MarketHeader({
           {/* Alerts Drawer Button */}
           <button
             onClick={onOpenAlerts}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-dark-850 hover:bg-dark-800 border border-dark-750 text-slate-300 transition text-xs font-medium"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white transition text-xs font-medium"
           >
-            <Bell className="w-3.5 h-3.5 text-amber-400" />
+            <Bell className="w-3.5 h-3.5 text-zinc-300" />
             <span className="hidden sm:inline">Alerts</span>
             {activeAlertCount > 0 && (
-              <span className="w-4 h-4 bg-amber-500 text-dark-950 font-bold rounded-full text-[10px] flex items-center justify-center">
+              <span className="w-4 h-4 bg-white text-black font-bold rounded-full text-[10px] flex items-center justify-center">
                 {activeAlertCount}
               </span>
             )}
