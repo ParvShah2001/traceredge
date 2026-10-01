@@ -12,7 +12,6 @@ body {
   color: #ffffff;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   overflow-x: hidden;
-  transition: background-color 0.15s ease, color 0.15s ease;
   letter-spacing: -0.01em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -33,11 +32,11 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #27272a;
+  background: #3f3f46;
   border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46;
+  background: #52525b;
 }
 
 /* Financial number tabular figures */
@@ -61,174 +60,80 @@ body {
 }
 
 /* ==========================================================================
-   Ultra-Minimal Dark Theme (Pitch Black & Crisp White)
+   Ultra-Minimal Dark Theme
    ========================================================================== */
 html.dark {
   color-scheme: dark;
 }
 
 html.dark body {
-  background-color: #000000 !important;
-  color: #ffffff !important;
-}
-
-/* Dark mode surfaces */
-html.dark .bg-dark-950,
-html.dark .bg-zinc-950 {
-  background-color: #000000 !important;
-}
-html.dark .bg-dark-900,
-html.dark .bg-zinc-900 {
-  background-color: #09090b !important;
-}
-html.dark .bg-dark-850,
-html.dark .bg-zinc-850 {
-  background-color: #121214 !important;
-}
-html.dark .bg-dark-800,
-html.dark .bg-zinc-800 {
-  background-color: #18181b !important;
-}
-
-/* Dark mode borders */
-html.dark .border-dark-900,
-html.dark .border-dark-850,
-html.dark .border-dark-800,
-html.dark .border-zinc-800,
-html.dark .border-zinc-700 {
-  border-color: #222225 !important;
+  background-color: #000000;
+  color: #ffffff;
 }
 
 /* Form Controls in Dark Mode */
 html.dark input,
 html.dark select,
 html.dark textarea {
-  background-color: #000000 !important;
-  border-color: #27272a !important;
-  color: #ffffff !important;
+  background-color: #000000;
+  border-color: #27272a;
+  color: #ffffff;
 }
 html.dark input:focus,
 html.dark select:focus {
-  border-color: #ffffff !important;
-  outline: none !important;
+  border-color: #ffffff;
+  outline: none;
 }
 
 /* ==========================================================================
-   Ultra-Minimal Light Theme (Deep Black Text on Pure Stark White)
+   Ultra-Minimal Light Theme (High Contrast Black & White)
    ========================================================================== */
 html.light {
   color-scheme: light;
 }
 
 html.light body {
-  background-color: #ffffff !important;
-  color: #000000 !important;
-}
-
-/* Light mode backgrounds */
-html.light .bg-dark-950,
-html.light .bg-zinc-950 {
-  background-color: #fafafa !important;
-}
-
-html.light .bg-dark-900,
-html.light .bg-zinc-900 {
-  background-color: #f4f4f5 !important;
-}
-
-html.light .bg-dark-850,
-html.light .bg-zinc-850 {
-  background-color: #ebebef !important;
-}
-
-html.light .bg-dark-800,
-html.light .bg-zinc-800 {
-  background-color: #e4e4e7 !important;
-}
-
-/* Light mode borders */
-html.light .border-dark-900,
-html.light .border-dark-850,
-html.light .border-dark-800,
-html.light .border-zinc-800,
-html.light .border-zinc-700,
-html.light .border-slate-800 {
-  border-color: #e4e4e7 !important;
-}
-
-/* Light mode text colors: Maximum Contrast & Sharp Readability */
-html.light .text-white,
-html.light .text-slate-100,
-html.light .text-slate-200,
-html.light .text-zinc-100,
-html.light .text-zinc-200 {
-  color: #09090b !important;
-}
-
-html.light .text-slate-300,
-html.light .text-zinc-300 {
-  color: #18181b !important;
-}
-
-html.light .text-slate-400,
-html.light .text-zinc-400,
-html.light .text-gray-400 {
-  color: #3f3f46 !important;
-}
-
-html.light .text-slate-500,
-html.light .text-zinc-500,
-html.light .text-gray-500 {
-  color: #52525b !important;
-}
-
-html.light .text-zinc-600,
-html.light .text-slate-600 {
-  color: #27272a !important;
-}
-
-html.light .text-zinc-700,
-html.light .text-slate-700 {
-  color: #18181b !important;
+  background-color: #ffffff;
+  color: #000000;
 }
 
 /* Table styling in Light Mode */
 html.light table thead {
-  background-color: #fafafa !important;
+  background-color: #f4f4f5;
 }
 
 html.light table thead th {
-  color: #3f3f46 !important;
-  font-weight: 700 !important;
-  border-color: #e4e4e7 !important;
+  color: #27272a;
+  font-weight: 700;
+  border-color: #e4e4e7;
 }
 
 html.light table tbody tr:hover {
-  background-color: #f4f4f5 !important;
+  background-color: #f4f4f5;
 }
 
 html.light table tbody td {
-  border-color: #f0f0f2 !important;
+  border-color: #e4e4e7;
 }
 
 /* Form Controls in Light Mode */
 html.light input,
 html.light select,
 html.light textarea {
-  background-color: #ffffff !important;
-  border-color: #d4d4d8 !important;
-  color: #09090b !important;
+  background-color: #ffffff;
+  border-color: #d4d4d8;
+  color: #000000;
 }
 
 html.light input:focus,
 html.light select:focus {
-  border-color: #000000 !important;
-  outline: none !important;
+  border-color: #000000;
+  outline: none;
 }
 
 html.light input::placeholder,
 html.light textarea::placeholder {
-  color: #71717a !important;
+  color: #71717a;
 }
 
 html.light ::-webkit-scrollbar-thumb {

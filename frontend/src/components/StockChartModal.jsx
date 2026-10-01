@@ -309,11 +309,7 @@ export function StockChartModal({ stock, onClose }) {
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="px-6 py-3 bg-zinc-50 dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between text-xs text-zinc-500">
-          <span>Official NSE / BSE Market Data Feed</span>
-          <span className="font-mono text-[11px]">TracerEdge Engine</span>
-        </div>
+
       </div>
     </div>
   );

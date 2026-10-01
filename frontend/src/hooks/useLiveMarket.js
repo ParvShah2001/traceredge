@@ -150,54 +150,67 @@ export function useLiveMarket(filters = {}) {
               });
             }
 
-            // Update stocks & apply flash animations
+            // Update stocks & apply flash animations ONLY if on-screen stocks are affected
             if (data.stocks && data.stocks.length > 0) {
-              const newFlashes = {};
               const getStockKey = (s) => s.id || `${s.symbol}:${s.exchange || ""}`;
               const tickUpdates = new Map();
-
               data.stocks.forEach((s) => {
-                const k = getStockKey(s);
-                tickUpdates.set(k, s);
-                if (s.tick_direction !== "same") {
-                  newFlashes[k] = s.tick_direction;
-                  newFlashes[s.symbol] = s.tick_direction;
-                }
+                tickUpdates.set(getStockKey(s), s);
               });
 
-              setFlashMap((prev) => ({ ...prev, ...newFlashes }));
-
-              // Clear flash after 500ms
-              setTimeout(() => {
-                if (!isMounted) return;
-                setFlashMap((prev) => {
-                  const next = { ...prev };
-                  Object.keys(newFlashes).forEach((k) => delete next[k]);
-                  return next;
-                });
-              }, 500);
-
-              // Update stocks in state
               setStocks((prevStocks) => {
-                return prevStocks.map((stock) => {
+                // Check if any visible stock actually has an update
+                let hasChanges = false;
+                const nextStocks = prevStocks.map((stock) => {
                   const k = getStockKey(stock);
                   const update = tickUpdates.get(k) || (stock.exchange ? tickUpdates.get(`${stock.symbol}:${stock.exchange}`) : tickUpdates.get(stock.symbol));
                   if (update && (!update.exchange || !stock.exchange || update.exchange === stock.exchange)) {
-                    return {
-                      ...stock,
-                      price: update.price,
-                      change: update.change,
-                      change_pct: update.change_pct,
-                      day_high: update.day_high,
-                      day_low: update.day_low,
-                      volume: update.volume,
-                      volume_ratio: update.volume_ratio,
-                      tick_direction: update.tick_direction,
-                      last_updated: update.last_updated
-                    };
+                    if (stock.price !== update.price || stock.change_pct !== update.change_pct) {
+                      hasChanges = true;
+                      return {
+                        ...stock,
+                        price: update.price,
+                        change: update.change,
+                        change_pct: update.change_pct,
+                        day_high: update.day_high,
+                        day_low: update.day_low,
+                        volume: update.volume,
+                        volume_ratio: update.volume_ratio,
+                        tick_direction: update.tick_direction,
+                        last_updated: update.last_updated
+                      };
+                    }
                   }
                   return stock;
                 });
+
+                if (!hasChanges) {
+                  return prevStocks; // Return same reference, skip React render
+                }
+
+                // Apply flashes only for stocks that actually changed
+                const newFlashes = {};
+                data.stocks.forEach((s) => {
+                  const k = getStockKey(s);
+                  if (tickUpdates.has(k) && s.tick_direction !== "same") {
+                    newFlashes[k] = s.tick_direction;
+                    newFlashes[s.symbol] = s.tick_direction;
+                  }
+                });
+
+                if (Object.keys(newFlashes).length > 0) {
+                  setFlashMap((prev) => ({ ...prev, ...newFlashes }));
+                  setTimeout(() => {
+                    if (!isMounted) return;
+                    setFlashMap((prev) => {
+                      const next = { ...prev };
+                      Object.keys(newFlashes).forEach((k) => delete next[k]);
+                      return next;
+                    });
+                  }, 500);
+                }
+
+                return nextStocks;
               });
             }
           }

@@ -268,17 +268,7 @@ export function App() {
         onClearRules={handleClearCustomRules}
       />
 
-      {/* Footer */}
-      <footer className="border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 py-3 text-center text-xs text-zinc-600 dark:text-zinc-400">
-        <div className="max-w-[1700px] mx-auto px-4 flex flex-wrap items-center justify-between gap-2">
-          <span className="font-semibold text-black dark:text-white">
-            TracerEdge — Indian Equity Screening Engine (NSE & BSE)
-          </span>
-          <span className="font-mono text-[11px] text-zinc-500">
-            Real-time WebSockets • 7,650+ Active Listed Equities
-          </span>
-        </div>
-      </footer>
+
     </div>
   );
 }

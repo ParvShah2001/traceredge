@@ -994,15 +994,32 @@ class MarketDataEngine:
                         filtered_custom.append(s)
             results = filtered_custom
 
-        # Sorting: priority stocks first if no explicit sort, otherwise by column
+        # Sorting: Accurate numeric and alphabetical sorting
         sort_by = kwargs.get("sort_by", "market_cap_cr")
         sort_dir = kwargs.get("sort_dir", "desc")
-        reverse = (sort_dir.lower() == "desc")
+        reverse = (str(sort_dir).lower() == "desc")
 
-        if sort_by in ["price", "change_pct", "volume", "market_cap_cr", "pe_ratio", "rsi_14", "tech_score", "dist_52w_high_pct"]:
-            results = sorted(results, key=lambda s: (s.get("is_live_synced", False), s.get(sort_by, 0)), reverse=reverse)
+        numeric_sort_keys = {
+            "price", "change", "change_pct", "volume", "volume_ratio", 
+            "market_cap_cr", "pe_ratio", "rsi_14", "tech_score", 
+            "dist_52w_high_pct", "dist_52w_low_pct", "day_high", "day_low",
+            "week_52_high", "week_52_low", "sma_20", "sma_50", "sma_200", "ema_20"
+        }
+
+        if sort_by in numeric_sort_keys:
+            def get_num(s):
+                v = s.get(sort_by)
+                if v is None:
+                    return -1e15 if reverse else 1e15
+                try:
+                    return float(v)
+                except (ValueError, TypeError):
+                    return -1e15 if reverse else 1e15
+            results.sort(key=get_num, reverse=reverse)
+        elif sort_by in ["name", "sector", "exchange", "series"]:
+            results.sort(key=lambda s: str(s.get(sort_by, "")).upper(), reverse=reverse)
         else:
-            results = sorted(results, key=lambda s: s.get("symbol", ""), reverse=reverse)
+            results.sort(key=lambda s: str(s.get("symbol", "")).upper(), reverse=reverse)
 
         total_count = len(results)
         page = max(1, int(kwargs.get("page", 1)))
@@ -1016,10 +1033,18 @@ class MarketDataEngine:
         # Register visible stocks so ticking engine prioritizes them
         self.active_page_ids = [s["id"] for s in paged_stocks]
 
-        # Fast background batch enrichment for un-synced stocks on this active page
-        un_synced_ids = [s["id"] for s in paged_stocks if not s.get("is_live_synced")][:30]
+        # Controlled background batch enrichment for un-synced stocks on this active page
+        if not hasattr(self, "_enriching_ids"):
+            self._enriching_ids = set()
+        un_synced_ids = [s["id"] for s in paged_stocks if not s.get("is_live_synced") and s["id"] not in self._enriching_ids][:20]
         if un_synced_ids:
-            threading.Thread(target=self.batch_enrich_stocks, args=(un_synced_ids,), daemon=True).start()
+            self._enriching_ids.update(un_synced_ids)
+            def _run_enrich(ids):
+                try:
+                    self.batch_enrich_stocks(ids)
+                finally:
+                    self._enriching_ids.difference_update(ids)
+            threading.Thread(target=_run_enrich, args=(un_synced_ids,), daemon=True).start()
 
         return {
             "total": total_count,

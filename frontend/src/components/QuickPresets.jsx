@@ -27,9 +27,9 @@ export const PRESETS = [
   { id: "mid_cap", label: "Mid Cap Leaders", icon: Zap, desc: "High beta midcap picks" },
 ];
 
-export function QuickPresets({ activePreset, onSelectPreset }) {
+export function QuickPresetsComponent({ activePreset, onSelectPreset }) {
   return (
-    <div className="overflow-x-auto no-scrollbar py-1">
+    <div className="overflow-x-auto no-scrollbar py-0.5">
       <div className="flex items-center gap-1.5 sm:gap-2 min-w-max">
         {PRESETS.map((p) => {
           const Icon = p.icon;
@@ -38,19 +38,19 @@ export function QuickPresets({ activePreset, onSelectPreset }) {
             <button
               key={p.id}
               onClick={() => onSelectPreset(p.id)}
-              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition border select-none ${
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition border select-none ${
                 isActive
-                  ? "bg-black text-white dark:bg-white dark:text-black border-black dark:border-white shadow-sm"
-                  : "bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:text-black dark:hover:text-white"
+                  ? "bg-black text-white border-black dark:bg-white dark:text-black dark:border-white shadow-sm"
+                  : "bg-zinc-100 hover:bg-zinc-200 border-zinc-200 text-zinc-800 hover:text-black dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:border-zinc-800 dark:text-zinc-200 dark:hover:text-white"
               }`}
             >
-              <Icon className={`w-3.5 h-3.5 ${isActive ? "text-current" : "text-zinc-500 dark:text-zinc-400"}`} />
+              <Icon className="w-3.5 h-3.5" />
               <span>{p.label}</span>
               {p.badge && (
-                <span className={`text-[9px] px-1 py-0.2 rounded font-black uppercase ${
+                <span className={`text-[9px] px-1 py-0.2 rounded font-extrabold uppercase ${
                   isActive
                     ? "bg-white text-black dark:bg-black dark:text-white"
-                    : "bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200"
+                    : "bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
                 }`}>
                   {p.badge}
                 </span>
@@ -62,3 +62,6 @@ export function QuickPresets({ activePreset, onSelectPreset }) {
     </div>
   );
 }
+
+export const QuickPresets = React.memo(QuickPresetsComponent);
+export default QuickPresets;
