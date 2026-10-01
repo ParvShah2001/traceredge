@@ -25,6 +25,8 @@ from indicators import (
     calculate_bollinger_bands,
     evaluate_technical_score
 )
+from indianapi_client import indian_api_client
+from ramm_stock_api import ramm_stock_api_client
 
 logger = logging.getLogger("data_engine")
 logging.basicConfig(level=logging.INFO)
@@ -202,12 +204,44 @@ class MarketDataEngine:
             return stock
 
         try:
+            sym = stock["symbol"]
+            exchange_type = stock.get("exchange", "NSE")
             ticker = stock.get("ticker") or stock.get("primary_ticker")
             if not ticker:
-                ticker = f"{stock['symbol']}.NS" if stock.get("exchange") == "NSE" else f"{stock['symbol']}.BO"
+                ticker = f"{sym}.NS" if exchange_type == "NSE" else f"{sym}.BO"
 
-            # Check direct BSE API if it's a BSE stock with scrip code
-            if stock.get("exchange") == "BSE" and stock.get("bse_code"):
+            # 1. Primary Source: IndianAPI.in (authenticated via API Key)
+            # Provides genuine separate BSE & NSE prices, deep valuation metrics, fundamentals, and news
+            try:
+                api_data = indian_api_client.get_stock(sym)
+                if api_data:
+                    stock["fundamentals"] = api_data
+                    if exchange_type == "BSE" and api_data.get("bse_price"):
+                        stock["price"] = api_data["bse_price"]
+                        stock["real_price"] = api_data["bse_price"]
+                    elif exchange_type == "NSE" and api_data.get("nse_price"):
+                        stock["price"] = api_data["nse_price"]
+                        stock["real_price"] = api_data["nse_price"]
+
+                    if api_data.get("pe_ratio") is not None:
+                        stock["pe_ratio"] = api_data["pe_ratio"]
+                    if api_data.get("pb_ratio") is not None:
+                        stock["pb_ratio"] = api_data["pb_ratio"]
+                    if api_data.get("dividend_yield") is not None:
+                        stock["dividend_yield"] = api_data["dividend_yield"]
+                    if api_data.get("market_cap_cr") is not None:
+                        stock["market_cap_cr"] = api_data["market_cap_cr"]
+                    if api_data.get("year_high") is not None:
+                        stock["week_52_high"] = api_data["year_high"]
+                    if api_data.get("year_low") is not None:
+                        stock["week_52_low"] = api_data["year_low"]
+                    if api_data.get("percent_change") is not None:
+                        stock["change_pct"] = api_data["percent_change"]
+            except Exception as ex_api:
+                logger.debug(f"IndianAPI.in enrich notice for {sym}: {ex_api}")
+
+            # 2. Direct BSE Official API for BSE-listed securities with 6-digit scrip code
+            if exchange_type == "BSE" and stock.get("bse_code") and not stock.get("is_live_synced"):
                 try:
                     from bseindia import libutil
                     resp = libutil._request(f"https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?DebtFlag=&scripcode={stock['bse_code']}&seriesid=")
@@ -234,37 +268,46 @@ class MarketDataEngine:
                             stock["change_pct"] = chg_pct
                             stock["is_live_synced"] = True
                             stock["last_updated"] = datetime.now(IST).strftime("%H:%M:%S IST")
-                            return stock
                 except Exception as bse_ex:
-                    logger.debug(f"Direct BSE quote fetch error for {stock['bse_code']}: {bse_ex}")
+                    logger.debug(f"Direct BSE quote fetch error for {stock.get('bse_code')}: {bse_ex}")
 
+            # 3. 0xramm Indian Stock Market API / Direct Yahoo JSON feeds
+            try:
+                ramm_quotes = ramm_stock_api_client.fetch_quotes_direct([ticker])
+                q = ramm_quotes.get(ticker) or ramm_quotes.get(ticker.upper())
+                if q and q.get("price") is not None:
+                    lp = q["price"]
+                    prev_c = q.get("prev_close") or lp
+                    stock["real_price"] = lp
+                    stock["price"] = lp
+                    stock["prev_close"] = prev_c
+                    stock["open"] = q.get("open") or lp
+                    stock["day_high"] = q.get("day_high") or lp
+                    stock["day_low"] = q.get("day_low") or lp
+                    stock["change"] = q.get("change") or round(lp - prev_c, 2)
+                    stock["change_pct"] = q.get("change_pct") or round(((lp - prev_c) / prev_c) * 100, 2) if prev_c else 0.0
+                    stock["volume"] = q.get("volume") or stock.get("volume", 100000)
+                    if q.get("pe_ratio") and not stock.get("pe_ratio"):
+                        stock["pe_ratio"] = q["pe_ratio"]
+                    if q.get("week_52_high") and not stock.get("week_52_high"):
+                        stock["week_52_high"] = q["week_52_high"]
+                    if q.get("week_52_low") and not stock.get("week_52_low"):
+                        stock["week_52_low"] = q["week_52_low"]
+                    stock["is_live_synced"] = True
+            except Exception as ex_ramm:
+                logger.debug(f"0xramm quote fetch notice for {ticker}: {ex_ramm}")
+
+            # 4. Historical daily bars for Technical Indicators (RSI, MACD, SMA, EMA, Bollinger)
             t = yf.Ticker(ticker)
-            fi = getattr(t, "fast_info", None)
-            lp = getattr(fi, "last_price", None) if fi else None
-
-            if lp and lp > 0:
-                prev_close = getattr(fi, "previous_close", lp) or lp
-                stock["real_price"] = round(float(lp), 2)
-                stock["price"] = round(float(lp), 2)
-                stock["prev_close"] = round(float(prev_close), 2)
-                stock["open"] = round(float(getattr(fi, "open", lp) or lp), 2)
-                stock["day_high"] = round(float(getattr(fi, "day_high", lp) or lp), 2)
-                stock["day_low"] = round(float(getattr(fi, "day_low", lp) or lp), 2)
-                stock["change"] = round(stock["price"] - stock["prev_close"], 2)
-                stock["change_pct"] = round((stock["change"] / stock["prev_close"]) * 100, 2) if stock["prev_close"] else 0.0
-                stock["volume"] = int(getattr(fi, "last_volume", 100000) or 100000)
-                mcap = getattr(fi, "market_cap", None)
-                if mcap:
-                    stock["market_cap_cr"] = round(float(mcap) / 1e7, 1)
-
-            # Historical daily bars for indicators
             hist = t.history(period="3mo", interval="1d")
             if not hist.empty and len(hist) >= 2:
                 stock["prev_high"] = round(float(hist["High"].iloc[-2]), 2)
                 stock["prev_low"] = round(float(hist["Low"].iloc[-2]), 2)
                 stock["prev_open"] = round(float(hist["Open"].iloc[-2]), 2)
-                stock["week_52_high"] = round(float(hist["High"].max()), 2)
-                stock["week_52_low"] = round(float(hist["Low"].min()), 2)
+                if not stock.get("week_52_high"):
+                    stock["week_52_high"] = round(float(hist["High"].max()), 2)
+                if not stock.get("week_52_low"):
+                    stock["week_52_low"] = round(float(hist["Low"].min()), 2)
                 stock["dist_52w_high_pct"] = round(((stock["price"] - stock["week_52_high"]) / stock["week_52_high"]) * 100, 2)
                 stock["dist_52w_low_pct"] = round(((stock["price"] - stock["week_52_low"]) / stock["week_52_low"]) * 100, 2)
 
@@ -294,7 +337,8 @@ class MarketDataEngine:
     def batch_enrich_stocks(self, stock_ids: List[str]):
         """
         Fast multi-threaded batch enricher for any list of stock IDs.
-        Used to instantly fetch live quotes for all visible table rows.
+        Uses 0xramm direct JSON feeds with automatic cookie handshake,
+        with seamless fallback to yfinance batch download.
         """
         tickers = []
         stock_by_ticker = {}
@@ -309,39 +353,69 @@ class MarketDataEngine:
         if not tickers:
             return
 
+        now_str = datetime.now(IST).strftime("%H:%M:%S IST")
+
+        # 1. High speed batch quotes via 0xramm architecture
+        unresolved_tickers = []
         try:
-            df = yf.download(tickers, period="5d", interval="1d", group_by="ticker", threads=True, progress=False)
-            if df.empty:
-                return
-
-            now_str = datetime.now(IST).strftime("%H:%M:%S IST")
+            ramm_results = ramm_stock_api_client.fetch_quotes_direct(tickers)
             for t_str, stock in stock_by_ticker.items():
-                try:
-                    if t_str not in df.columns.levels[0]:
-                        continue
-                    stock_df = df[t_str].dropna(subset=["Close"])
-                    if stock_df.empty:
-                        continue
-                    lp = round(float(stock_df["Close"].iloc[-1]), 2)
-                    prev = round(float(stock_df["Close"].iloc[-2]), 2) if len(stock_df) >= 2 else round(lp * 0.99, 2)
-                    chg = round(lp - prev, 2)
-                    chg_pct = round((chg / prev) * 100, 2) if prev else 0.0
-
+                q = ramm_results.get(t_str) or ramm_results.get(t_str.upper())
+                if q and q.get("price") is not None:
+                    lp = q["price"]
+                    prev_c = q.get("prev_close") or lp
                     stock["real_price"] = lp
                     stock["price"] = lp
-                    stock["prev_close"] = prev
-                    stock["open"] = round(float(stock_df["Open"].iloc[-1]), 2)
-                    stock["day_high"] = round(float(stock_df["High"].iloc[-1]), 2)
-                    stock["day_low"] = round(float(stock_df["Low"].iloc[-1]), 2)
-                    stock["change"] = chg
-                    stock["change_pct"] = chg_pct
-                    stock["volume"] = int(stock_df["Volume"].iloc[-1])
+                    stock["prev_close"] = prev_c
+                    stock["open"] = q.get("open") or lp
+                    stock["day_high"] = q.get("day_high") or lp
+                    stock["day_low"] = q.get("day_low") or lp
+                    stock["change"] = q.get("change") or round(lp - prev_c, 2)
+                    stock["change_pct"] = q.get("change_pct") or (round(((lp - prev_c) / prev_c) * 100, 2) if prev_c else 0.0)
+                    stock["volume"] = q.get("volume") or stock.get("volume", 100000)
                     stock["is_live_synced"] = True
                     stock["last_updated"] = now_str
-                except Exception:
-                    pass
+                else:
+                    unresolved_tickers.append(t_str)
         except Exception as e:
-            logger.debug(f"batch_enrich_stocks error: {e}")
+            logger.debug(f"0xramm batch enrich exception: {e}")
+            unresolved_tickers = tickers
+
+        # 2. Fallback to yfinance batch download for unresolved tickers
+        if unresolved_tickers:
+            try:
+                df = yf.download(unresolved_tickers, period="5d", interval="1d", group_by="ticker", threads=True, progress=False)
+                if not df.empty:
+                    for t_str in unresolved_tickers:
+                        stock = stock_by_ticker.get(t_str)
+                        if not stock:
+                            continue
+                        try:
+                            if t_str not in df.columns.levels[0]:
+                                continue
+                            stock_df = df[t_str].dropna(subset=["Close"])
+                            if stock_df.empty:
+                                continue
+                            lp = round(float(stock_df["Close"].iloc[-1]), 2)
+                            prev = round(float(stock_df["Close"].iloc[-2]), 2) if len(stock_df) >= 2 else round(lp * 0.99, 2)
+                            chg = round(lp - prev, 2)
+                            chg_pct = round((chg / prev) * 100, 2) if prev else 0.0
+
+                            stock["real_price"] = lp
+                            stock["price"] = lp
+                            stock["prev_close"] = prev
+                            stock["open"] = round(float(stock_df["Open"].iloc[-1]), 2)
+                            stock["day_high"] = round(float(stock_df["High"].iloc[-1]), 2)
+                            stock["day_low"] = round(float(stock_df["Low"].iloc[-1]), 2)
+                            stock["change"] = chg
+                            stock["change_pct"] = chg_pct
+                            stock["volume"] = int(stock_df["Volume"].iloc[-1])
+                            stock["is_live_synced"] = True
+                            stock["last_updated"] = now_str
+                        except Exception:
+                            pass
+            except Exception as e:
+                logger.debug(f"batch_enrich_stocks fallback error: {e}")
 
     def sync_real_data_batch_sync(self):
         """

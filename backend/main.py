@@ -16,6 +16,8 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from data_engine import engine
+from indianapi_client import indian_api_client
+from ramm_stock_api import ramm_stock_api_client
 
 logger = logging.getLogger("server")
 logging.basicConfig(level=logging.INFO)
@@ -258,6 +260,23 @@ def get_stocks(
     }
 
 
+@app.get("/api/trending")
+def get_trending():
+    """Get real-time top gainers and top losers powered by IndianAPI.in."""
+    res = indian_api_client.get_trending()
+    if not res:
+        gainers = sorted([s for s in engine.stocks.values() if s.get("is_live_synced")], key=lambda s: s["change_pct"], reverse=True)[:10]
+        losers = sorted([s for s in engine.stocks.values() if s.get("is_live_synced")], key=lambda s: s["change_pct"])[:10]
+        res = {"top_gainers": gainers, "top_losers": losers}
+    return res
+
+
+@app.get("/api/news")
+def get_news():
+    """Get live Indian stock market news powered by IndianAPI.in."""
+    return indian_api_client.get_news()
+
+
 @app.get("/api/stocks/{symbol}")
 def get_stock_detail(
     symbol: str,
@@ -269,6 +288,24 @@ def get_stock_detail(
     if not stock:
         return {"error": f"Stock {symbol} not found"}
     return stock
+
+
+@app.get("/api/stocks/{symbol}/details")
+def get_stock_deep_details(
+    symbol: str,
+    exchange: Optional[str] = Query(None, description="Optional exchange filter: NSE or BSE")
+):
+    """
+    Get deep fundamentals, valuation ratios, debt-to-equity, peers, and recent news
+    powered by IndianAPI.in.
+    """
+    sym = symbol.upper()
+    stock = engine.enrich_stock_live(sym, exchange=exchange)
+    api_details = indian_api_client.get_stock(sym)
+    return {
+        "stock": stock,
+        "fundamentals": api_details or (stock.get("fundamentals") if stock else None)
+    }
 
 
 @app.get("/api/stocks/{symbol}/history")
