@@ -14,6 +14,8 @@ body {
   overflow-x: hidden;
   transition: background-color 0.15s ease, color 0.15s ease;
   letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
@@ -24,8 +26,8 @@ body {
 
 /* Minimalist Monochrome Scrollbars */
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
@@ -59,107 +61,42 @@ body {
 }
 
 /* ==========================================================================
-   Ultra-Minimal Dark Theme (Pitch Black & Pure White)
+   Ultra-Minimal Dark Theme (Pitch Black & Crisp White)
    ========================================================================== */
+html.dark {
+  color-scheme: dark;
+}
+
 html.dark body {
   background-color: #000000 !important;
   color: #ffffff !important;
 }
 
 /* Dark mode surfaces */
-html.dark .bg-dark-950 {
+html.dark .bg-dark-950,
+html.dark .bg-zinc-950 {
   background-color: #000000 !important;
 }
-html.dark .bg-dark-900 {
+html.dark .bg-dark-900,
+html.dark .bg-zinc-900 {
   background-color: #09090b !important;
 }
-html.dark .bg-dark-850 {
+html.dark .bg-dark-850,
+html.dark .bg-zinc-850 {
   background-color: #121214 !important;
 }
-html.dark .bg-dark-800 {
+html.dark .bg-dark-800,
+html.dark .bg-zinc-800 {
   background-color: #18181b !important;
-}
-html.dark .bg-dark-750 {
-  background-color: #222225 !important;
-}
-html.dark .bg-dark-700 {
-  background-color: #27272a !important;
 }
 
 /* Dark mode borders */
 html.dark .border-dark-900,
 html.dark .border-dark-850,
 html.dark .border-dark-800,
-html.dark .border-dark-750,
-html.dark .border-dark-700,
-html.dark .border-slate-800,
-html.dark .border-slate-700 {
+html.dark .border-zinc-800,
+html.dark .border-zinc-700 {
   border-color: #222225 !important;
-}
-
-/* Monochrome Text in Dark Mode */
-html.dark .text-emerald-400,
-html.dark .text-emerald-500,
-html.dark .text-teal-400,
-html.dark .text-teal-300,
-html.dark .text-bull,
-html.dark .text-bull-light {
-  color: #ffffff !important;
-}
-
-html.dark .text-rose-400,
-html.dark .text-rose-500,
-html.dark .text-red-400,
-html.dark .text-bear,
-html.dark .text-bear-light {
-  color: #8e8e93 !important;
-}
-
-html.dark .text-amber-400,
-html.dark .text-amber-500 {
-  color: #d4d4d8 !important;
-}
-
-/* Badges & Pills in Dark Mode */
-html.dark .bg-emerald-500,
-html.dark .bg-emerald-500\/10,
-html.dark .bg-emerald-500\/15,
-html.dark .bg-emerald-500\/20,
-html.dark .bg-emerald-500\/30 {
-  background-color: #18181b !important;
-  color: #ffffff !important;
-  border-color: #27272a !important;
-}
-
-html.dark .bg-rose-500,
-html.dark .bg-rose-500\/10,
-html.dark .bg-rose-500\/15,
-html.dark .bg-rose-500\/20,
-html.dark .bg-rose-500\/30 {
-  background-color: #121214 !important;
-  color: #a1a1aa !important;
-  border-color: #27272a !important;
-}
-
-html.dark .bg-amber-500,
-html.dark .bg-amber-500\/15,
-html.dark .bg-amber-500\/20 {
-  background-color: #18181b !important;
-  color: #e4e4e7 !important;
-  border-color: #27272a !important;
-}
-
-/* Table styling in Dark Mode */
-html.dark table thead tr {
-  background-color: #000000 !important;
-  border-color: #222225 !important;
-  color: #71717a !important;
-}
-html.dark table tbody tr {
-  border-color: #121214 !important;
-}
-html.dark table tbody tr:hover {
-  background-color: #0e0e11 !important;
 }
 
 /* Form Controls in Dark Mode */
@@ -177,7 +114,7 @@ html.dark select:focus {
 }
 
 /* ==========================================================================
-   Ultra-Minimal Light Theme (Stark Pure White & Deep Black)
+   Ultra-Minimal Light Theme (Deep Black Text on Pure Stark White)
    ========================================================================== */
 html.light {
   color-scheme: light;
@@ -185,143 +122,93 @@ html.light {
 
 html.light body {
   background-color: #ffffff !important;
-  color: #09090b !important;
+  color: #000000 !important;
 }
 
-/* Background surfaces */
+/* Light mode backgrounds */
 html.light .bg-dark-950,
-html.light .bg-\[\#070b12\],
-html.light .bg-\[\#070b12\]\/80 {
-  background-color: #ffffff !important;
+html.light .bg-zinc-950 {
+  background-color: #fafafa !important;
 }
 
 html.light .bg-dark-900,
-html.light .bg-\[\#0b111e\],
-html.light .bg-dark-900\/90,
-html.light .bg-dark-900\/80 {
-  background-color: #ffffff !important;
+html.light .bg-zinc-900 {
+  background-color: #f4f4f5 !important;
 }
 
 html.light .bg-dark-850,
-html.light .bg-\[\#0f172a\],
-html.light .bg-dark-850\/90,
-html.light .bg-dark-850\/60 {
-  background-color: #f7f7f8 !important;
+html.light .bg-zinc-850 {
+  background-color: #ebebef !important;
 }
 
 html.light .bg-dark-800,
-html.light .bg-\[\#141e33\] {
-  background-color: #f0f0f2 !important;
-}
-
-html.light .bg-dark-750,
-html.light .bg-\[\#1a2742\] {
+html.light .bg-zinc-800 {
   background-color: #e4e4e7 !important;
 }
 
-html.light .bg-dark-700,
-html.light .bg-\[\#1e293b\] {
-  background-color: #d4d4d8 !important;
-}
-
-/* Borders */
+/* Light mode borders */
 html.light .border-dark-900,
 html.light .border-dark-850,
 html.light .border-dark-800,
-html.light .border-dark-800\/80,
-html.light .border-dark-800\/60,
-html.light .border-dark-750,
-html.light .border-dark-700,
-html.light .border-slate-800,
-html.light .border-slate-800\/80,
-html.light .border-slate-800\/60,
-html.light .border-\[\#1e293b\],
-html.light .border-slate-700 {
+html.light .border-zinc-800,
+html.light .border-zinc-700,
+html.light .border-slate-800 {
   border-color: #e4e4e7 !important;
 }
 
-html.light .divide-dark-800 > *,
-html.light .divide-dark-800\/60 > * {
-  border-color: #e4e4e7 !important;
-}
-
-/* Hover surfaces */
-html.light .hover\:bg-dark-800:hover,
-html.light .hover\:bg-dark-850:hover,
-html.light .hover\:bg-dark-750:hover,
-html.light tr:hover {
-  background-color: #f4f4f5 !important;
-}
-
-/* Text in Light Mode */
+/* Light mode text colors: Maximum Contrast & Sharp Readability */
 html.light .text-white,
 html.light .text-slate-100,
-html.light .text-slate-200 {
+html.light .text-slate-200,
+html.light .text-zinc-100,
+html.light .text-zinc-200 {
   color: #09090b !important;
 }
 
-html.light .text-slate-300 {
+html.light .text-slate-300,
+html.light .text-zinc-300 {
   color: #18181b !important;
 }
 
-html.light .text-slate-400 {
+html.light .text-slate-400,
+html.light .text-zinc-400,
+html.light .text-gray-400 {
+  color: #3f3f46 !important;
+}
+
+html.light .text-slate-500,
+html.light .text-zinc-500,
+html.light .text-gray-500 {
   color: #52525b !important;
 }
 
-html.light .text-slate-500 {
-  color: #71717a !important;
-}
-
-/* High-Contrast Monochrome for Light Mode */
-html.light .text-emerald-400,
-html.light .text-emerald-500,
-html.light .text-teal-400,
-html.light .text-teal-300,
-html.light .text-bull,
-html.light .text-bull-light {
-  color: #000000 !important;
-  font-weight: 600;
-}
-
-html.light .text-rose-400,
-html.light .text-rose-500,
-html.light .text-red-400,
-html.light .text-bear,
-html.light .text-bear-light {
-  color: #71717a !important;
-}
-
-html.light .text-amber-400,
-html.light .text-amber-500 {
+html.light .text-zinc-600,
+html.light .text-slate-600 {
   color: #27272a !important;
 }
 
-/* Badges in Light Mode */
-html.light .bg-emerald-500,
-html.light .bg-emerald-500\/10,
-html.light .bg-emerald-500\/15,
-html.light .bg-emerald-500\/20 {
-  background-color: #f4f4f5 !important;
-  color: #09090b !important;
+html.light .text-zinc-700,
+html.light .text-slate-700 {
+  color: #18181b !important;
+}
+
+/* Table styling in Light Mode */
+html.light table thead {
+  background-color: #fafafa !important;
+}
+
+html.light table thead th {
+  color: #3f3f46 !important;
+  font-weight: 700 !important;
   border-color: #e4e4e7 !important;
 }
 
-html.light .bg-rose-500,
-html.light .bg-rose-500\/10,
-html.light .bg-rose-500\/15,
-html.light .bg-rose-500\/20 {
+html.light table tbody tr:hover {
   background-color: #f4f4f5 !important;
-  color: #52525b !important;
-  border-color: #e4e4e7 !important;
 }
 
-html.light .bg-amber-500,
-html.light .bg-amber-500\/10,
-html.light .bg-amber-500\/15,
-html.light .bg-amber-500\/20 {
-  background-color: #f4f4f5 !important;
-  color: #27272a !important;
-  border-color: #e4e4e7 !important;
+html.light table tbody td {
+  border-color: #f0f0f2 !important;
 }
 
 /* Form Controls in Light Mode */
@@ -341,21 +228,7 @@ html.light select:focus {
 
 html.light input::placeholder,
 html.light textarea::placeholder {
-  color: #a1a1aa !important;
-}
-
-/* Table Head and Cells in Light Mode */
-html.light table thead {
-  background-color: #ffffff !important;
-}
-
-html.light table thead th {
   color: #71717a !important;
-  border-color: #e4e4e7 !important;
-}
-
-html.light table tbody td {
-  border-color: #f4f4f5 !important;
 }
 
 html.light ::-webkit-scrollbar-thumb {

@@ -4,23 +4,18 @@ import {
   X,
   TrendingUp,
   TrendingDown,
-  Bell,
-  Activity,
-  Layers,
-  BarChart2
+  Activity
 } from "lucide-react";
 import { fetchStockHistory, fetchStockDetail } from "../services/api";
 
 const TIMEFRAMES = ["1D", "1W", "1M", "3M", "1Y"];
 
-export function StockChartModal({ stock, onClose, onSetAlert }) {
+export function StockChartModal({ stock, onClose }) {
   const chartContainerRef = useRef(null);
   const chartRef = useRef(null);
   const [liveStock, setLiveStock] = useState(stock);
   const [timeframe, setTimeframe] = useState("1M");
   const [loading, setLoading] = useState(true);
-  const [targetPrice, setTargetPrice] = useState("");
-  const [alertSuccess, setAlertSuccess] = useState(false);
 
   useEffect(() => {
     setLiveStock(stock);
@@ -98,13 +93,12 @@ export function StockChartModal({ stock, onClose, onSetAlert }) {
           },
           priceScaleId: "",
           scaleMargins: {
-            top: 0.82,
+            top: 0.8,
             bottom: 0
           }
         });
 
-        const candles = data.candles || [];
-        const candleData = candles.map((c) => ({
+        const candles = (data.candles || []).map((c) => ({
           time: c.time,
           open: c.open,
           high: c.high,
@@ -112,18 +106,25 @@ export function StockChartModal({ stock, onClose, onSetAlert }) {
           close: c.close
         }));
 
-        const volumeData = candles.map((c) => ({
+        const volumes = (data.candles || []).map((c) => ({
           time: c.time,
           value: c.volume,
-          color: isLight
-            ? (c.close >= c.open ? "rgba(0, 0, 0, 0.4)" : "rgba(113, 113, 122, 0.3)")
-            : (c.close >= c.open ? "rgba(255, 255, 255, 0.4)" : "rgba(113, 113, 122, 0.3)")
+          color:
+            c.close >= c.open
+              ? isLight
+                ? "#d4d4d8"
+                : "#3f3f46"
+              : isLight
+              ? "#e4e4e7"
+              : "#27272a"
         }));
 
-        candlestickSeries.setData(candleData);
-        volumeSeries.setData(volumeData);
+        if (candles.length > 0) {
+          candlestickSeries.setData(candles);
+          volumeSeries.setData(volumes);
+          chart.timeScale().fitContent();
+        }
 
-        // Responsive resize
         const handleResize = () => {
           if (chartContainerRef.current && chartRef.current) {
             chartRef.current.applyOptions({
@@ -131,14 +132,12 @@ export function StockChartModal({ stock, onClose, onSetAlert }) {
             });
           }
         };
-        window.addEventListener("resize", handleResize);
 
-        return () => {
-          window.removeEventListener("resize", handleResize);
-        };
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
       })
       .catch((err) => {
-        console.error("Error loading chart data:", err);
+        console.error("Chart load error:", err);
         setLoading(false);
       });
 
@@ -149,69 +148,54 @@ export function StockChartModal({ stock, onClose, onSetAlert }) {
         chartRef.current = null;
       }
     };
-  }, [stock, timeframe]);
+  }, [stock?.symbol, stock?.exchange, timeframe]);
+
+  if (!stock) return null;
 
   const currStock = liveStock || stock;
-  if (!currStock) return null;
-
   const isBull = (currStock.change ?? 0) >= 0;
-
-  const handleCreateAlert = (e) => {
-    e.preventDefault();
-    const val = parseFloat(targetPrice);
-    if (!val || isNaN(val)) return;
-
-    onSetAlert({
-      symbol: currStock.symbol,
-      condition: val > (currStock.price || 0) ? "price_above" : "price_below",
-      value: val
-    });
-
-    setAlertSuccess(true);
-    setTimeout(() => setAlertSuccess(false), 2500);
-    setTargetPrice("");
-  };
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 md:p-6 overflow-y-auto animate-fadeIn">
-      <div className="bg-dark-900 border border-dark-750 rounded-2xl w-full max-w-5xl overflow-hidden shadow-2xl flex flex-col my-auto max-h-[92vh]">
+      <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-2xl w-full max-w-4xl overflow-hidden shadow-2xl flex flex-col my-auto max-h-[92vh]">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-dark-800 flex items-center justify-between bg-dark-950/70">
+        <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 flex flex-wrap items-center justify-between gap-3 bg-zinc-50 dark:bg-zinc-950">
           <div className="flex items-center gap-4">
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-xl font-bold text-white tracking-tight">
+                <h3 className="text-xl font-black text-black dark:text-white tracking-tight">
                   {currStock.symbol}
-                </h2>
-                <span className="text-[11px] px-1.5 py-0.5 rounded bg-dark-800 text-slate-400 border border-dark-750 font-mono">
-                  NSE: {currStock.symbol}
+                </h3>
+                <span
+                  className={`text-[10px] px-2 py-0.5 rounded font-bold border ${
+                    currStock.exchange === "BSE"
+                      ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border-zinc-300 dark:border-zinc-700"
+                      : "bg-black dark:bg-white text-white dark:text-black border-black dark:border-white"
+                  }`}
+                >
+                  {currStock.exchange || "NSE"}
                 </span>
-                {currStock.series && (
-                  <span className="text-[11px] px-1.5 py-0.5 rounded bg-dark-800 text-slate-400 border border-dark-750 font-mono">
-                    {currStock.series}
-                  </span>
-                )}
-                {currStock.tech_signal && (
-                  <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-medium">
-                    {currStock.tech_signal}
+                {currStock.bse_code && (
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 font-mono border border-zinc-200 dark:border-zinc-800">
+                    Scrip #{currStock.bse_code}
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-400 mt-0.5">
-                {currStock.name} • {currStock.sector} {currStock.market_cap_category ? `• ${currStock.market_cap_category}` : ""}
+              <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5 font-medium">
+                {currStock.name} • {currStock.sector}
               </p>
             </div>
 
-            <div className="h-8 w-px bg-dark-800 hidden sm:block" />
+            <div className="h-8 w-px bg-zinc-200 dark:bg-zinc-800 hidden sm:block" />
 
             {/* Price Badge */}
             <div className="hidden sm:flex flex-col">
-              <span className="text-lg font-bold text-white font-tabular">
+              <span className="text-lg font-bold text-black dark:text-white font-tabular">
                 ₹{currStock.price ? currStock.price.toFixed(2) : "—"}
               </span>
               <span
-                className={`text-xs font-semibold flex items-center gap-0.5 ${
-                  isBull ? "text-emerald-400" : "text-rose-400"
+                className={`text-xs font-bold flex items-center gap-0.5 ${
+                  isBull ? "text-emerald-700 dark:text-emerald-400" : "text-rose-700 dark:text-rose-400"
                 }`}
               >
                 {isBull ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
@@ -224,15 +208,15 @@ export function StockChartModal({ stock, onClose, onSetAlert }) {
 
           {/* Timeframe selector & Close */}
           <div className="flex items-center gap-3">
-            <div className="bg-dark-850 p-1 rounded-lg border border-dark-750 flex items-center gap-1">
+            <div className="bg-zinc-100 dark:bg-zinc-900 p-1 rounded-lg border border-zinc-200 dark:border-zinc-800 flex items-center gap-1">
               {TIMEFRAMES.map((tf) => (
                 <button
                   key={tf}
                   onClick={() => setTimeframe(tf)}
-                  className={`px-2.5 py-1 rounded text-xs font-semibold transition ${
+                  className={`px-2.5 py-1 rounded text-xs font-bold transition ${
                     timeframe === tf
-                      ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
-                      : "text-slate-400 hover:text-slate-200"
+                      ? "bg-black text-white dark:bg-white dark:text-black shadow-sm"
+                      : "text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white"
                   }`}
                 >
                   {tf}
@@ -242,7 +226,7 @@ export function StockChartModal({ stock, onClose, onSetAlert }) {
 
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg bg-dark-800 hover:bg-dark-750 text-slate-400 hover:text-white transition"
+              className="p-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition"
             >
               <X className="w-5 h-5" />
             </button>
@@ -250,10 +234,10 @@ export function StockChartModal({ stock, onClose, onSetAlert }) {
         </div>
 
         {/* Chart Viewport */}
-        <div className="relative p-4 bg-dark-900">
+        <div className="relative p-4 bg-white dark:bg-black">
           {loading && (
-            <div className="absolute inset-0 z-10 bg-dark-900/70 backdrop-blur-xs flex items-center justify-center text-slate-400 text-sm gap-2">
-              <Activity className="w-5 h-5 text-emerald-400 animate-spin" />
+            <div className="absolute inset-0 z-10 bg-white/80 dark:bg-black/80 backdrop-blur-xs flex items-center justify-center text-zinc-700 dark:text-zinc-300 text-sm gap-2">
+              <Activity className="w-5 h-5 text-black dark:text-white animate-spin" />
               <span>Fetching live candlestick data...</span>
             </div>
           )}
@@ -261,102 +245,74 @@ export function StockChartModal({ stock, onClose, onSetAlert }) {
         </div>
 
         {/* Technical Indicators & Fundamentals Grid */}
-        <div className="px-6 py-4 bg-dark-950 border-t border-dark-800 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 text-xs overflow-y-auto">
+        <div className="px-6 py-4 bg-zinc-50 dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 text-xs overflow-y-auto">
           {/* RSI (14) */}
-          <div className="bg-dark-900 p-2.5 rounded-lg border border-dark-800">
-            <span className="text-slate-500 block">RSI (14)</span>
-            <span className="text-white font-bold text-sm mt-0.5 block">
+          <div className="bg-white dark:bg-zinc-900 p-2.5 rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-sm">
+            <span className="text-zinc-500 dark:text-zinc-400 block font-medium">RSI (14)</span>
+            <span className="text-black dark:text-white font-bold text-sm mt-0.5 block">
               {currStock.rsi_14 != null ? currStock.rsi_14.toFixed(1) : "50.0"}
             </span>
-            <span className="text-[10px] text-slate-400">
+            <span className="text-[10px] text-zinc-500 font-semibold">
               {currStock.rsi_14 >= 70 ? "Overbought" : currStock.rsi_14 <= 35 ? "Oversold" : "Neutral"}
             </span>
           </div>
 
           {/* 20 EMA */}
-          <div className="bg-dark-900 p-2.5 rounded-lg border border-dark-800">
-            <span className="text-slate-500 block">20 EMA</span>
-            <span className="text-white font-bold text-sm mt-0.5 block">
+          <div className="bg-white dark:bg-zinc-900 p-2.5 rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-sm">
+            <span className="text-zinc-500 dark:text-zinc-400 block font-medium">20 EMA</span>
+            <span className="text-black dark:text-white font-bold text-sm mt-0.5 block">
               ₹{currStock.ema_20 != null ? currStock.ema_20.toFixed(2) : "—"}
             </span>
-            <span className="text-[10px] text-emerald-400">
-              {currStock.price && currStock.ema_20 ? (currStock.price >= currStock.ema_20 ? "▲ Above EMA" : "▼ Below EMA") : "Trend"}
+            <span className="text-[10px] text-zinc-600 dark:text-zinc-400 font-medium">
+              {currStock.price && currStock.ema_20 ? (currStock.price >= currStock.ema_20 ? "Above EMA" : "Below EMA") : "Trend"}
             </span>
           </div>
 
           {/* 50 SMA */}
-          <div className="bg-dark-900 p-2.5 rounded-lg border border-dark-800">
-            <span className="text-slate-500 block">50 SMA</span>
-            <span className="text-white font-bold text-sm mt-0.5 block">
+          <div className="bg-white dark:bg-zinc-900 p-2.5 rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-sm">
+            <span className="text-zinc-500 dark:text-zinc-400 block font-medium">50 SMA</span>
+            <span className="text-black dark:text-white font-bold text-sm mt-0.5 block">
               ₹{currStock.sma_50 != null ? currStock.sma_50.toFixed(2) : "—"}
             </span>
-            <span className="text-[10px] text-slate-400">Medium Trend</span>
+            <span className="text-[10px] text-zinc-500 font-medium">Medium Trend</span>
           </div>
 
           {/* 200 SMA */}
-          <div className="bg-dark-900 p-2.5 rounded-lg border border-dark-800">
-            <span className="text-slate-500 block">200 SMA (DMA)</span>
-            <span className="text-white font-bold text-sm mt-0.5 block">
+          <div className="bg-white dark:bg-zinc-900 p-2.5 rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-sm">
+            <span className="text-zinc-500 dark:text-zinc-400 block font-medium">200 SMA</span>
+            <span className="text-black dark:text-white font-bold text-sm mt-0.5 block">
               ₹{currStock.sma_200 != null ? currStock.sma_200.toFixed(2) : "—"}
             </span>
-            <span className="text-[10px] text-slate-400">Long Trend</span>
+            <span className="text-[10px] text-zinc-500 font-medium">Long Trend</span>
           </div>
 
           {/* 52W High / Low */}
-          <div className="bg-dark-900 p-2.5 rounded-lg border border-dark-800">
-            <span className="text-slate-500 block">52W Range</span>
-            <span className="text-white font-bold text-sm mt-0.5 block">
+          <div className="bg-white dark:bg-zinc-900 p-2.5 rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-sm">
+            <span className="text-zinc-500 dark:text-zinc-400 block font-medium">52W Range</span>
+            <span className="text-black dark:text-white font-bold text-sm mt-0.5 block">
               ₹{currStock.week_52_low != null ? currStock.week_52_low.toFixed(0) : "—"} - ₹{currStock.week_52_high != null ? currStock.week_52_high.toFixed(0) : "—"}
             </span>
-            <span className="text-[10px] text-slate-400">
+            <span className="text-[10px] text-zinc-500 font-medium">
               Dist High: {currStock.dist_52w_high_pct ?? 0}%
             </span>
           </div>
 
           {/* Market Cap & PE */}
-          <div className="bg-dark-900 p-2.5 rounded-lg border border-dark-800">
-            <span className="text-slate-500 block">Market Cap & P/E</span>
-            <span className="text-white font-bold text-sm mt-0.5 block">
+          <div className="bg-white dark:bg-zinc-900 p-2.5 rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-sm">
+            <span className="text-zinc-500 dark:text-zinc-400 block font-medium">Market Cap & P/E</span>
+            <span className="text-black dark:text-white font-bold text-sm mt-0.5 block">
               {currStock.market_cap_cr ? `₹${Number(currStock.market_cap_cr).toLocaleString("en-IN")} Cr` : "—"}
             </span>
-            <span className="text-[10px] text-slate-400">
-              P/E: {currStock.pe_ratio > 0 ? currStock.pe_ratio.toFixed(1) : "—"} | Div: {currStock.dividend_yield ?? 0}%
+            <span className="text-[10px] text-zinc-500 font-medium">
+              P/E: {currStock.pe_ratio > 0 ? currStock.pe_ratio.toFixed(1) : "—"}
             </span>
           </div>
         </div>
 
-        {/* Bottom Alert Set Bar */}
-        <div className="px-6 py-3 bg-dark-900 border-t border-dark-800 flex flex-wrap items-center justify-between gap-3">
-          <form onSubmit={handleCreateAlert} className="flex items-center gap-2">
-            <Bell className="w-4 h-4 text-amber-400" />
-            <span className="text-xs text-slate-300 font-medium">Set Price Alert:</span>
-            <div className="relative">
-              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs">₹</span>
-              <input
-                type="number"
-                step="0.05"
-                placeholder={currStock.price ? currStock.price.toFixed(2) : "0.00"}
-                value={targetPrice}
-                onChange={(e) => setTargetPrice(e.target.value)}
-                className="bg-dark-850 border border-dark-750 focus:border-amber-400 rounded pl-6 pr-2 py-1 text-xs text-white focus:outline-none w-28"
-              />
-            </div>
-            <button
-              type="submit"
-              className="px-3 py-1 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 rounded text-xs font-semibold transition"
-            >
-              Add Alert
-            </button>
-            {alertSuccess && (
-              <span className="text-xs text-emerald-400 font-semibold animate-pulse">
-                ✓ Alert set!
-              </span>
-            )}
-          </form>
-
-          <div className="text-xs text-slate-500">
-            Live tick frequency: <strong className="text-slate-400">1.5s</strong> • Data feed: <strong className="text-slate-400">NSE / BSE</strong>
-          </div>
+        {/* Footer */}
+        <div className="px-6 py-3 bg-zinc-50 dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between text-xs text-zinc-500">
+          <span>Official NSE / BSE Market Data Feed</span>
+          <span className="font-mono text-[11px]">TracerEdge Engine</span>
         </div>
       </div>
     </div>

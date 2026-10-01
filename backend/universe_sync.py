@@ -12,7 +12,10 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 from typing import Dict, List, Any, Tuple, Optional
 import pandas as pd
-import bseindia
+try:
+    import bseindia
+except ImportError:
+    bseindia = None
 
 logger = logging.getLogger("universe_sync")
 logging.basicConfig(level=logging.INFO)
@@ -24,6 +27,10 @@ UNIVERSE_CACHE_PATH = os.path.join(DATA_DIR, "ALL_INDIAN_EQUITIES.json")
 
 NSE_URL = "https://archives.nseindia.com/content/equities/EQUITY_L.csv"
 FALLBACK_NSE_PATH = os.path.join(os.path.dirname(__file__), "EQUITY_L.csv")
+
+
+FALLBACK_BSE_PATH = os.path.join(DATA_DIR, "BSE_EQUITIES.csv")
+FALLBACK_BSE_ROOT = os.path.join(os.path.dirname(__file__), "BSE_EQUITIES.csv")
 
 
 def infer_sector_from_name(name: str) -> str:
@@ -102,33 +109,54 @@ class UniverseSyncManager:
             return pd.DataFrame()
 
     def fetch_bse_df(self) -> pd.DataFrame:
-        """Fetches active equity securities master from BSE India."""
-        try:
-            bse_df = bseindia.all_listed_securities(refresh=True)
-            active_eq = bse_df[
-                (bse_df["status"].astype(str).str.lower() == "active") &
-                (bse_df["instrument"].astype(str).str.lower() == "equity")
-            ].copy()
-            logger.info(f"Fetched live BSE master with {len(active_eq)} active equities.")
-            return active_eq
-        except Exception as e:
-            logger.warning(f"Live BSE fetch failed ({e}). Loading cached BSE securities if any.")
+        """Fetches active equity securities master from BSE India with multi-stage fallback."""
+        if bseindia is not None:
+            try:
+                bse_df = bseindia.all_listed_securities(refresh=True)
+                active_eq = bse_df[
+                    (bse_df["status"].astype(str).str.lower() == "active") &
+                    (bse_df["instrument"].astype(str).str.lower() == "equity")
+                ].copy()
+                if len(active_eq) > 1000:
+                    logger.info(f"Fetched live BSE master with {len(active_eq)} active equities.")
+                    try:
+                        active_eq.to_csv(FALLBACK_BSE_PATH, index=False)
+                    except Exception:
+                        pass
+                    return active_eq
+            except Exception as e:
+                logger.warning(f"Live BSE fetch failed ({e}). Loading cached BSE securities if any.")
+
             try:
                 bse_df = bseindia.all_listed_securities(refresh=False)
                 active_eq = bse_df[
                     (bse_df["status"].astype(str).str.lower() == "active") &
                     (bse_df["instrument"].astype(str).str.lower() == "equity")
                 ].copy()
-                return active_eq
+                if len(active_eq) > 1000:
+                    logger.info(f"Loaded bseindia cached master with {len(active_eq)} active equities.")
+                    return active_eq
             except Exception as e2:
-                logger.error(f"Failed to load BSE securities: {e2}")
-                return pd.DataFrame()
+                logger.debug(f"bseindia cached master not available: {e2}")
+
+        # Fallback to local CSV cache
+        for bse_path in [FALLBACK_BSE_PATH, FALLBACK_BSE_ROOT]:
+            if os.path.exists(bse_path):
+                try:
+                    df = pd.read_csv(bse_path)
+                    df.columns = [c.strip() for c in df.columns]
+                    logger.info(f"Loaded fallback BSE master from {bse_path} with {len(df)} equities.")
+                    return df
+                except Exception as ex:
+                    logger.warning(f"Failed to read BSE fallback {bse_path}: {ex}")
+
+        return pd.DataFrame()
 
     def merge_and_build(self, nse_df: pd.DataFrame, bse_df: pd.DataFrame) -> Dict[str, Dict[str, Any]]:
         """
         Builds separate, dedicated equity listings for NSE and BSE.
-        Does NOT merge dual-listed stocks so that NSE and BSE maintain distinct, independent prices.
-        Produces complete 7,640+ Indian Market equity universe.
+        Does NOT drop existing equities if one exchange fails to fetch.
+        Produces complete 7,650+ Indian Market equity universe.
         """
         all_equities: Dict[str, Dict[str, Any]] = {}
         nse_count = 0
@@ -136,76 +164,96 @@ class UniverseSyncManager:
 
         # Build ISIN to BSE mapping for cross-referencing BSE codes
         bse_code_by_isin: Dict[str, str] = {}
-        for _, row in bse_df.iterrows():
-            isin = str(row.get("isin_no", "")).strip().upper()
-            code = str(row.get("security_code", "")).strip()
-            if isin and isin.startswith("IN") and code:
-                bse_code_by_isin[isin] = code
+        if not bse_df.empty:
+            for _, row in bse_df.iterrows():
+                isin = str(row.get("isin_no", "")).strip().upper()
+                code = str(row.get("security_code", "")).strip()
+                if isin and isin.startswith("IN") and code:
+                    bse_code_by_isin[isin] = code
 
-        # 1. Process NSE equities (~2,587 listings)
-        for _, row in nse_df.iterrows():
-            sym = str(row.get("SYMBOL", "")).strip().upper()
-            if not sym or sym == "NAN":
-                continue
-            name = str(row.get("NAME OF COMPANY", sym)).strip()
-            isin = str(row.get("ISIN NUMBER", "")).strip().upper()
-            series = str(row.get("SERIES", "EQ")).strip()
-            listing_date = str(row.get("DATE OF LISTING", "")).strip()
-            sector = infer_sector_from_name(name)
-            bse_c = bse_code_by_isin.get(isin)
+        # 1. Process NSE equities (~2,592 listings)
+        if not nse_df.empty:
+            for _, row in nse_df.iterrows():
+                sym = str(row.get("SYMBOL", "")).strip().upper()
+                if not sym or sym == "NAN":
+                    continue
+                name = str(row.get("NAME OF COMPANY", sym)).strip()
+                isin = str(row.get("ISIN NUMBER", "")).strip().upper()
+                series = str(row.get("SERIES", "EQ")).strip()
+                listing_date = str(row.get("DATE OF LISTING", "")).strip()
+                sector = infer_sector_from_name(name)
+                bse_c = bse_code_by_isin.get(isin)
 
-            stock_id = f"{sym}:NSE"
-            nse_count += 1
-            all_equities[stock_id] = {
-                "id": stock_id,
-                "symbol": sym,
-                "name": name,
-                "isin": isin,
-                "exchange": "NSE",
-                "nse_symbol": sym,
-                "bse_symbol": None,
-                "bse_code": bse_c,
-                "series": series,
-                "listing_date": listing_date,
-                "sector": sector,
-                "ticker": f"{sym}.NS",
-                "primary_ticker": f"{sym}.NS"
-            }
+                stock_id = f"{sym}:NSE"
+                nse_count += 1
+                all_equities[stock_id] = {
+                    "id": stock_id,
+                    "symbol": sym,
+                    "name": name,
+                    "isin": isin,
+                    "exchange": "NSE",
+                    "nse_symbol": sym,
+                    "bse_symbol": None,
+                    "bse_code": bse_c,
+                    "series": series,
+                    "listing_date": listing_date,
+                    "sector": sector,
+                    "ticker": f"{sym}.NS",
+                    "primary_ticker": f"{sym}.NS"
+                }
+        elif self.stocks_map:
+            # Preserve existing NSE stocks if fetch returned empty
+            for k, v in self.stocks_map.items():
+                if v.get("exchange") == "NSE":
+                    all_equities[k] = v
+                    nse_count += 1
 
-        # 2. Process BSE equities (~5,053 listings)
-        for _, row in bse_df.iterrows():
-            code = str(row.get("security_code", "")).strip()
-            if not code or code == "NAN":
-                continue
-            raw_sym = str(row.get("symbol", "")).strip().upper()
-            if not raw_sym or raw_sym == "NAN":
-                raw_sym = code
+        # 2. Process BSE equities (~5,061 listings)
+        if not bse_df.empty:
+            for _, row in bse_df.iterrows():
+                code = str(row.get("security_code", "")).strip()
+                if not code or code == "NAN":
+                    continue
+                raw_sym = str(row.get("symbol", "")).strip().upper()
+                if not raw_sym or raw_sym == "NAN":
+                    raw_sym = code
 
-            name = str(row.get("issuer_name", "")).strip()
-            if not name or name == "NAN":
-                name = str(row.get("security_name", raw_sym)).strip()
+                name = str(row.get("issuer_name", "")).strip()
+                if not name or name == "NAN":
+                    name = str(row.get("security_name", raw_sym)).strip()
 
-            isin = str(row.get("isin_no", "")).strip().upper()
-            group = str(row.get("group", "B")).strip()
-            sector = infer_sector_from_name(name)
+                isin = str(row.get("isin_no", "")).strip().upper()
+                group = str(row.get("group", "B")).strip()
+                sector = infer_sector_from_name(name)
 
-            stock_id = f"{code}:BSE"
-            bse_count += 1
-            all_equities[stock_id] = {
-                "id": stock_id,
-                "symbol": raw_sym,
-                "name": name,
-                "isin": isin,
-                "exchange": "BSE",
-                "nse_symbol": None,
-                "bse_symbol": raw_sym,
-                "bse_code": code,
-                "series": group,
-                "listing_date": "",
-                "sector": sector,
-                "ticker": f"{raw_sym}.BO" if raw_sym and raw_sym != code else f"{code}.BO",
-                "primary_ticker": f"{raw_sym}.BO" if raw_sym and raw_sym != code else f"{code}.BO"
-            }
+                stock_id = f"{code}:BSE"
+                bse_count += 1
+                all_equities[stock_id] = {
+                    "id": stock_id,
+                    "symbol": raw_sym,
+                    "name": name,
+                    "isin": isin,
+                    "exchange": "BSE",
+                    "nse_symbol": None,
+                    "bse_symbol": raw_sym,
+                    "bse_code": code,
+                    "series": group,
+                    "listing_date": "",
+                    "sector": sector,
+                    "ticker": f"{raw_sym}.BO" if raw_sym and raw_sym != code else f"{code}.BO",
+                    "primary_ticker": f"{raw_sym}.BO" if raw_sym and raw_sym != code else f"{code}.BO"
+                }
+        elif self.stocks_map:
+            # CRITICAL PRESERVATION: If BSE fetch returned empty, preserve all existing BSE stocks
+            for k, v in self.stocks_map.items():
+                if v.get("exchange") == "BSE":
+                    all_equities[k] = v
+                    bse_count += 1
+
+        # Safety check: Never allow universe to drop drastically
+        if len(all_equities) < 3000 and len(self.stocks_map) >= 3000:
+            logger.warning(f"Merged universe count ({len(all_equities)}) is suspiciously low. Preserving current universe of {len(self.stocks_map)}.")
+            return self.stocks_map
 
         now_str = datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S IST")
         self.last_synced = now_str

@@ -1,24 +1,21 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { WS_BASE, fetchStocks, fetchIndices, fetchMarketStatus } from "../services/api";
-import { soundManager } from "../utils/sound";
+
+const DEFAULT_INDICES = [
+  { symbol: "NIFTY 50", name: "Nifty 50", value: 24750.50, change: 85.20, change_pct: 0.35, high: 24820.00, low: 24690.00 },
+  { symbol: "SENSEX", name: "BSE Sensex", value: 81200.25, change: 275.40, change_pct: 0.34, high: 81450.00, low: 81050.00 },
+  { symbol: "BANK NIFTY", name: "Nifty Bank", value: 52350.00, change: 160.00, change_pct: 0.31, high: 52500.00, low: 52100.00 },
+  { symbol: "NIFTY IT", name: "Nifty IT", value: 41800.75, change: -120.30, change_pct: -0.29, high: 42100.00, low: 41650.00 },
+  { symbol: "INDIA VIX", name: "India VIX", value: 12.85, change: -0.35, change_pct: -2.65, high: 13.50, low: 12.60 }
+];
 
 export function useLiveMarket(filters = {}) {
   const [stocks, setStocks] = useState([]);
-  const [indices, setIndices] = useState([]);
+  const [indices, setIndices] = useState(DEFAULT_INDICES);
   const [marketStatus, setMarketStatus] = useState(null);
   const [connectionStatus, setConnectionStatus] = useState("connecting"); // 'connected' | 'connecting' | 'disconnected'
   const [flashMap, setFlashMap] = useState({}); // { [symbol]: 'up' | 'down' }
   const [lastTickTime, setLastTickTime] = useState("");
-  const [alerts, setAlerts] = useState(() => {
-    try {
-      const saved = localStorage.getItem("screener_alerts");
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
-  const [triggeredAlerts, setTriggeredAlerts] = useState([]);
-  const [soundEnabled, setSoundEnabled] = useState(true);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
@@ -28,15 +25,6 @@ export function useLiveMarket(filters = {}) {
   const reconnectTimeoutRef = useRef(null);
   const filtersRef = useRef(filters);
   filtersRef.current = filters;
-
-  // Persist alerts
-  useEffect(() => {
-    try {
-      localStorage.setItem("screener_alerts", JSON.stringify(alerts));
-    } catch (e) {
-      console.error(e);
-    }
-  }, [alerts]);
 
   // Initial load or filter change
   const reloadStocks = useCallback(async () => {
@@ -59,16 +47,6 @@ export function useLiveMarket(filters = {}) {
   const filterCriteriaHash = JSON.stringify([
     filters.preset,
     filters.search,
-    filters.exchange,
-    filters.sector,
-    filters.market_cap_category,
-    filters.min_price,
-    filters.max_price,
-    filters.min_rsi,
-    filters.max_rsi,
-    filters.min_pe,
-    filters.max_pe,
-    filters.min_vol_ratio,
     filters.sort_by,
     filters.sort_dir,
     filters.custom_rules,
@@ -87,16 +65,6 @@ export function useLiveMarket(filters = {}) {
   }, [
     filters.preset,
     filters.search,
-    filters.exchange,
-    filters.sector,
-    filters.market_cap_category,
-    filters.min_price,
-    filters.max_price,
-    filters.min_rsi,
-    filters.max_rsi,
-    filters.min_pe,
-    filters.max_pe,
-    filters.min_vol_ratio,
     filters.sort_by,
     filters.sort_dir,
     JSON.stringify(filters.custom_rules),
@@ -104,10 +72,25 @@ export function useLiveMarket(filters = {}) {
     reloadStocks
   ]);
 
-  // Initial fetch for indices and market status
+  // Fetch indices and market status on mount and on a reliable background interval
   useEffect(() => {
-    fetchIndices().then(setIndices).catch(console.error);
-    fetchMarketStatus().then(setMarketStatus).catch(console.error);
+    const updateMarketData = () => {
+      fetchIndices()
+        .then((data) => {
+          if (Array.isArray(data) && data.length > 0) {
+            setIndices(data);
+          }
+        })
+        .catch(console.error);
+
+      fetchMarketStatus()
+        .then(setMarketStatus)
+        .catch(console.error);
+    };
+
+    updateMarketData();
+    const interval = setInterval(updateMarketData, 15000);
+    return () => clearInterval(interval);
   }, []);
 
   // WebSocket Live Updates
@@ -134,7 +117,9 @@ export function useLiveMarket(filters = {}) {
           const data = JSON.parse(event.data);
 
           if (data.type === "SNAPSHOT") {
-            if (data.indices) setIndices(data.indices);
+            if (Array.isArray(data.indices) && data.indices.length > 0) {
+              setIndices(data.indices);
+            }
             if (data.breadth) {
               setMarketStatus((prev) => ({
                 ...(prev || {}),
@@ -153,8 +138,8 @@ export function useLiveMarket(filters = {}) {
               }));
             }
 
-            // Update indices
-            if (data.indices && data.indices.length > 0) {
+            // Update indices reliably without ever wiping out
+            if (Array.isArray(data.indices) && data.indices.length > 0) {
               setIndices((prevIndices) => {
                 const map = new Map(prevIndices.map((idx) => [idx.symbol, idx]));
                 data.indices.forEach((newIdx) => {
@@ -165,7 +150,7 @@ export function useLiveMarket(filters = {}) {
               });
             }
 
-            // Update stocks & apply flash animations keyed by unique stock ID and exchange
+            // Update stocks & apply flash animations
             if (data.stocks && data.stocks.length > 0) {
               const newFlashes = {};
               const getStockKey = (s) => s.id || `${s.symbol}:${s.exchange || ""}`;
@@ -182,14 +167,7 @@ export function useLiveMarket(filters = {}) {
 
               setFlashMap((prev) => ({ ...prev, ...newFlashes }));
 
-              // Play subtle sound if enabled
-              if (data.stocks.some((s) => s.tick_direction === "up")) {
-                soundManager.playTick("up");
-              } else if (data.stocks.some((s) => s.tick_direction === "down")) {
-                soundManager.playTick("down");
-              }
-
-              // Clear flash after 500ms for snappy, fluid visuals
+              // Clear flash after 500ms
               setTimeout(() => {
                 if (!isMounted) return;
                 setFlashMap((prev) => {
@@ -199,7 +177,7 @@ export function useLiveMarket(filters = {}) {
                 });
               }, 500);
 
-              // Update stocks in state without mixing NSE and BSE prices
+              // Update stocks in state
               setStocks((prevStocks) => {
                 return prevStocks.map((stock) => {
                   const k = getStockKey(stock);
@@ -221,9 +199,6 @@ export function useLiveMarket(filters = {}) {
                   return stock;
                 });
               });
-
-              // Check alerts
-              checkAlerts(data.stocks);
             }
           }
         } catch (err) {
@@ -253,67 +228,6 @@ export function useLiveMarket(filters = {}) {
     };
   }, []);
 
-  // Alert verification
-  const checkAlerts = (updatedStockList) => {
-    if (!alerts.length) return;
-    const alertMap = new Map(updatedStockList.map((s) => [s.symbol, s]));
-
-    alerts.forEach((alert) => {
-      const stock = alertMap.get(alert.symbol);
-      if (!stock || alert.triggered) return;
-
-      let triggered = false;
-      let message = "";
-
-      if (alert.condition === "price_above" && stock.price >= alert.value) {
-        triggered = true;
-        message = `${alert.symbol} reached ₹${stock.price} (Above target ₹${alert.value})`;
-      } else if (alert.condition === "price_below" && stock.price <= alert.value) {
-        triggered = true;
-        message = `${alert.symbol} fell to ₹${stock.price} (Below target ₹${alert.value})`;
-      } else if (alert.condition === "pct_gain" && stock.change_pct >= alert.value) {
-        triggered = true;
-        message = `${alert.symbol} gained +${stock.change_pct}% (Target +${alert.value}%)`;
-      }
-
-      if (triggered) {
-        soundManager.playAlertNotification();
-        setTriggeredAlerts((prev) => [
-          {
-            id: Date.now() + Math.random(),
-            symbol: alert.symbol,
-            message,
-            time: new Date().toLocaleTimeString("en-IN")
-          },
-          ...prev.slice(0, 4)
-        ]);
-
-        setAlerts((prevAlerts) =>
-          prevAlerts.map((a) => (a.id === alert.id ? { ...a, triggered: true } : a))
-        );
-      }
-    });
-  };
-
-  const addAlert = (alertObj) => {
-    const newAlert = {
-      id: Date.now().toString(),
-      triggered: false,
-      createdAt: new Date().toLocaleTimeString("en-IN"),
-      ...alertObj
-    };
-    setAlerts((prev) => [newAlert, ...prev]);
-  };
-
-  const removeAlert = (alertId) => {
-    setAlerts((prev) => prev.filter((a) => a.id !== alertId));
-  };
-
-  const toggleSound = () => {
-    const nextState = soundManager.toggleSound();
-    setSoundEnabled(nextState);
-  };
-
   return {
     stocks,
     indices,
@@ -322,13 +236,6 @@ export function useLiveMarket(filters = {}) {
     flashMap,
     lastTickTime,
     reloadStocks,
-    alerts,
-    addAlert,
-    removeAlert,
-    triggeredAlerts,
-    dismissAlert: (id) => setTriggeredAlerts((prev) => prev.filter((a) => a.id !== id)),
-    soundEnabled,
-    toggleSound,
     total,
     page,
     setPage,

@@ -736,7 +736,7 @@ class MarketDataEngine:
                 "eod_verified": getattr(self, "_eod_verified", False),
                 "eod_date": getattr(self, "_eod_date", None),
                 "stocks": [],
-                "indices": [],
+                "indices": list(self.indices.values()),
                 "breadth": self.get_market_breadth()
             }
 

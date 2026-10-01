@@ -2,9 +2,7 @@ import React, { useState } from "react";
 import {
   TrendingUp,
   TrendingDown,
-  Star,
   LineChart,
-  Bell,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
@@ -31,11 +29,8 @@ function getPageNumbers(currentPage, totalPages) {
 
 export function StockTable({
   stocks,
-  flashMap,
-  watchlist,
-  onToggleWatchlist,
+  flashMap = {},
   onOpenChart,
-  onOpenAlertModal,
   sortBy,
   sortDir,
   onSort,
@@ -56,62 +51,47 @@ export function StockTable({
       setJumpPageInput("");
     }
   };
+
   const renderSortIcon = (columnKey) => {
     if (sortBy !== columnKey) {
-      return <ArrowUpDown className="w-3 h-3 text-slate-600 group-hover:text-slate-400" />;
+      return <ArrowUpDown className="w-3 h-3 text-zinc-400 group-hover:text-black dark:group-hover:text-white" />;
     }
     return sortDir === "asc" ? (
-      <ArrowUp className="w-3 h-3 text-emerald-400" />
+      <ArrowUp className="w-3 h-3 text-black dark:text-white font-bold" />
     ) : (
-      <ArrowDown className="w-3 h-3 text-emerald-400" />
+      <ArrowDown className="w-3 h-3 text-black dark:text-white font-bold" />
     );
   };
 
-  const getSignalBadge = (signal, color) => {
-    switch (color) {
-      case "emerald":
-        return "bg-emerald-500/15 text-emerald-400 border-emerald-500/30";
-      case "teal":
-        return "bg-teal-500/15 text-teal-400 border-teal-500/30";
-      case "rose":
-      case "red":
-        return "bg-rose-500/15 text-rose-400 border-rose-500/30";
-      default:
-        return "bg-amber-500/15 text-amber-400 border-amber-500/30";
-    }
-  };
-
   const getRsiColor = (rsi) => {
-    if (rsi >= 70) return "text-rose-400 font-bold";
-    if (rsi <= 35) return "text-emerald-400 font-bold";
-    if (rsi >= 55) return "text-teal-300";
-    return "text-slate-300";
+    if (rsi >= 70) return "text-rose-700 dark:text-rose-400 font-bold";
+    if (rsi <= 35) return "text-emerald-700 dark:text-emerald-400 font-bold";
+    if (rsi >= 55) return "text-zinc-900 dark:text-zinc-100 font-semibold";
+    return "text-zinc-700 dark:text-zinc-300";
   };
 
   if (!stocks || stocks.length === 0) {
     return (
-      <div className="bg-dark-900 border border-dark-800 rounded-xl p-12 text-center text-slate-400 flex flex-col items-center justify-center gap-2">
-        <LineChart className="w-10 h-10 text-slate-600 animate-pulse" />
-        <p className="text-base font-medium text-slate-300">No stocks matched your criteria</p>
-        <p className="text-xs text-slate-500">
-          Try loosening your filter parameters or selecting a broader preset.
+      <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-xl p-12 text-center text-zinc-600 dark:text-zinc-400 flex flex-col items-center justify-center gap-2 shadow-sm">
+        <LineChart className="w-10 h-10 text-zinc-400 dark:text-zinc-600 animate-pulse" />
+        <p className="text-base font-bold text-black dark:text-white">No stocks matched your criteria</p>
+        <p className="text-xs text-zinc-500">
+          Try loosening your search query or reset your custom filters.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="bg-dark-900 border border-dark-800 rounded-xl overflow-hidden shadow-xl">
+    <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm transition-colors">
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse text-xs">
           {/* Table Header */}
           <thead>
-            <tr className="border-b border-dark-800 bg-dark-950/80 text-slate-400 font-semibold uppercase tracking-wider select-none">
-              <th className="py-2.5 sm:py-3 px-2 sm:px-3 w-9 text-center sticky left-0 z-20 bg-dark-950 sm:static sm:bg-transparent">⭐</th>
-              
+            <tr className="border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 text-zinc-600 dark:text-zinc-400 font-bold uppercase tracking-wider select-none">
               <th
                 onClick={() => onSort("symbol")}
-                className="py-2.5 sm:py-3 px-2 sm:px-3 cursor-pointer hover:text-white transition group sticky left-9 z-20 bg-dark-950 sm:static sm:bg-transparent border-r sm:border-r-0 border-dark-800"
+                className="py-3 px-3 cursor-pointer hover:text-black dark:hover:text-white transition group sticky left-0 z-20 bg-zinc-50 dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800 sm:border-r-0"
               >
                 <div className="flex items-center gap-1.5">
                   <span>Stock</span>
@@ -121,17 +101,17 @@ export function StockTable({
 
               <th
                 onClick={() => onSort("price")}
-                className="py-3 px-3 cursor-pointer hover:text-white transition group text-right"
+                className="py-3 px-3 cursor-pointer hover:text-black dark:hover:text-white transition group text-right"
               >
                 <div className="flex items-center justify-end gap-1.5">
-                  <span>Live Price (₹)</span>
+                  <span>Price (₹)</span>
                   {renderSortIcon("price")}
                 </div>
               </th>
 
               <th
                 onClick={() => onSort("change_pct")}
-                className="py-3 px-3 cursor-pointer hover:text-white transition group text-right"
+                className="py-3 px-3 cursor-pointer hover:text-black dark:hover:text-white transition group text-right"
               >
                 <div className="flex items-center justify-end gap-1.5">
                   <span>Change (%)</span>
@@ -145,17 +125,17 @@ export function StockTable({
 
               <th
                 onClick={() => onSort("volume")}
-                className="py-3 px-3 cursor-pointer hover:text-white transition group text-right hidden sm:table-cell"
+                className="py-3 px-3 cursor-pointer hover:text-black dark:hover:text-white transition group text-right hidden sm:table-cell"
               >
                 <div className="flex items-center justify-end gap-1.5">
-                  <span>Volume & Ratio</span>
+                  <span>Volume</span>
                   {renderSortIcon("volume")}
                 </div>
               </th>
 
               <th
                 onClick={() => onSort("rsi_14")}
-                className="py-3 px-3 cursor-pointer hover:text-white transition group text-center"
+                className="py-3 px-3 cursor-pointer hover:text-black dark:hover:text-white transition group text-center"
               >
                 <div className="flex items-center justify-center gap-1.5">
                   <span>RSI (14)</span>
@@ -165,7 +145,7 @@ export function StockTable({
 
               <th
                 onClick={() => onSort("dist_52w_high_pct")}
-                className="py-3 px-3 cursor-pointer hover:text-white transition group text-center hidden md:table-cell"
+                className="py-3 px-3 cursor-pointer hover:text-black dark:hover:text-white transition group text-center hidden md:table-cell"
               >
                 <div className="flex items-center justify-center gap-1.5">
                   <span>52W High Range</span>
@@ -175,7 +155,7 @@ export function StockTable({
 
               <th
                 onClick={() => onSort("pe_ratio")}
-                className="py-3 px-3 cursor-pointer hover:text-white transition group text-right hidden xl:table-cell"
+                className="py-3 px-3 cursor-pointer hover:text-black dark:hover:text-white transition group text-right hidden xl:table-cell"
               >
                 <div className="flex items-center justify-end gap-1.5">
                   <span>P/E</span>
@@ -185,7 +165,7 @@ export function StockTable({
 
               <th
                 onClick={() => onSort("market_cap_cr")}
-                className="py-3 px-3 cursor-pointer hover:text-white transition group text-right hidden xl:table-cell"
+                className="py-3 px-3 cursor-pointer hover:text-black dark:hover:text-white transition group text-right hidden xl:table-cell"
               >
                 <div className="flex items-center justify-end gap-1.5">
                   <span>Market Cap (Cr)</span>
@@ -195,25 +175,24 @@ export function StockTable({
 
               <th
                 onClick={() => onSort("tech_score")}
-                className="py-3 px-3 cursor-pointer hover:text-white transition group text-center"
+                className="py-3 px-3 cursor-pointer hover:text-black dark:hover:text-white transition group text-center"
               >
                 <div className="flex items-center justify-center gap-1.5">
-                  <span>Tech Score</span>
+                  <span>Signal</span>
                   {renderSortIcon("tech_score")}
                 </div>
               </th>
 
-              <th className="py-3 px-3 text-center">Actions</th>
+              <th className="py-3 px-3 text-center">Chart</th>
             </tr>
           </thead>
 
           {/* Table Body */}
-          <tbody className="divide-y divide-dark-800/60 font-tabular">
+          <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800/80 font-tabular">
             {stocks.map((stock) => {
               const stockKey = stock.id || `${stock.symbol}:${stock.exchange || ""}`;
               const isBull = stock.change >= 0;
               const flash = flashMap[stockKey] || flashMap[stock.symbol];
-              const isPinned = watchlist.includes(stockKey) || watchlist.includes(stock.symbol);
 
               // Calculate intraday progress
               const dayRange = stock.day_high - stock.day_low;
@@ -244,63 +223,46 @@ export function StockTable({
               return (
                 <tr
                   key={stockKey}
-                  className={`hover:bg-dark-850/60 transition duration-150 ${
+                  className={`hover:bg-zinc-50 dark:hover:bg-zinc-900/60 transition duration-150 ${
                     flash === "up"
-                      ? "bg-emerald-500/20"
+                      ? "bg-emerald-100/50 dark:bg-emerald-950/40"
                       : flash === "down"
-                      ? "bg-rose-500/20"
+                      ? "bg-rose-100/50 dark:bg-rose-950/40"
                       : ""
                   }`}
                 >
-                  {/* Bookmark Star */}
-                  <td className="py-2.5 sm:py-3 px-2 sm:px-3 text-center sticky left-0 z-10 bg-dark-900 sm:static sm:bg-transparent">
-                    <button
-                      onClick={() => onToggleWatchlist(stock.symbol)}
-                      className="p-1 rounded hover:bg-dark-800 transition"
-                      title={isPinned ? "Remove from Watchlist" : "Add to Watchlist"}
-                    >
-                      <Star
-                        className={`w-3.5 h-3.5 ${
-                          isPinned
-                            ? "text-amber-400 fill-amber-400"
-                            : "text-slate-600 hover:text-slate-400"
-                        }`}
-                      />
-                    </button>
-                  </td>
-
-                  {/* Stock Symbol & Company */}
-                  <td className="py-2.5 sm:py-3 px-2 sm:px-3 sticky left-9 z-10 bg-dark-900 sm:static sm:bg-transparent border-r sm:border-r-0 border-dark-800">
+                  {/* Stock Symbol & Company (Sticky on mobile for smooth horizontal swipe) */}
+                  <td className="py-2.5 sm:py-3 px-3 sticky left-0 z-10 bg-white dark:bg-black border-r border-zinc-200 dark:border-zinc-800 sm:border-r-0">
                     <div className="flex flex-col">
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5 flex-wrap">
                         <span
                           onClick={() => onOpenChart(stock.symbol, stock.exchange)}
-                          className="font-bold text-white text-xs hover:text-emerald-400 cursor-pointer transition font-sans"
+                          className="font-extrabold text-black dark:text-white text-xs hover:underline cursor-pointer transition font-sans"
                         >
                           {stock.symbol}
                         </span>
                         <span
-                          className={`text-[9px] px-1.5 py-0.2 rounded font-semibold border ${
+                          className={`text-[9px] px-1.5 py-0.2 rounded font-bold border ${
                             stock.exchange === "BSE"
-                              ? "bg-amber-500/15 text-amber-300 border-amber-500/30"
-                              : "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
+                              ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border-zinc-300 dark:border-zinc-700"
+                              : "bg-zinc-900 dark:bg-zinc-100 text-white dark:text-black border-zinc-900 dark:border-zinc-100"
                           }`}
                         >
                           {stock.exchange || "NSE"}
                         </span>
                         {stock.bse_code && (
-                          <span className="text-[9px] px-1 rounded bg-dark-800 text-slate-400 border border-dark-750 font-mono" title={`BSE Scrip Code: ${stock.bse_code}`}>
+                          <span className="text-[9px] px-1 rounded bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800 font-mono" title={`BSE Scrip Code: ${stock.bse_code}`}>
                             #{stock.bse_code}
                           </span>
                         )}
-                        <span className="text-[9px] px-1 rounded bg-dark-800 text-slate-500 font-mono">
+                        <span className="text-[9px] px-1 rounded bg-zinc-100 dark:bg-zinc-900 text-zinc-500 font-mono">
                           {stock.series || "EQ"}
                         </span>
                       </div>
-                      <span className="text-[11px] text-slate-400 truncate max-w-[170px] font-sans">
+                      <span className="text-[11px] text-zinc-700 dark:text-zinc-300 font-medium truncate max-w-[170px] font-sans mt-0.5">
                         {stock.name}
                       </span>
-                      <span className="text-[10px] text-slate-500 font-sans">
+                      <span className="text-[10px] text-zinc-500 dark:text-zinc-400 font-sans">
                         {stock.sector}
                       </span>
                     </div>
@@ -310,12 +272,12 @@ export function StockTable({
                   <td className="py-3 px-3 text-right">
                     <div className="flex flex-col items-end">
                       <span
-                        className={`font-semibold text-xs transition duration-200 ${
+                        className={`font-bold text-xs transition duration-200 ${
                           flash === "up"
-                            ? "text-emerald-300 font-bold"
+                            ? "text-emerald-700 dark:text-emerald-300 font-black"
                             : flash === "down"
-                            ? "text-rose-300 font-bold"
-                            : "text-slate-100"
+                            ? "text-rose-700 dark:text-rose-300 font-black"
+                            : "text-black dark:text-white"
                         }`}
                       >
                         ₹
@@ -324,7 +286,7 @@ export function StockTable({
                           maximumFractionDigits: 2
                         })}
                       </span>
-                      <span className="text-[10px] text-slate-500">
+                      <span className="text-[10px] text-zinc-500 font-medium">
                         Prev: ₹{stock.prev_close?.toFixed(2)}
                       </span>
                     </div>
@@ -334,10 +296,10 @@ export function StockTable({
                   <td className="py-3 px-3 text-right">
                     <div className="flex flex-col items-end">
                       <span
-                        className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded font-semibold text-xs ${
+                        className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded font-bold text-xs border ${
                           isBull
-                            ? "bg-emerald-500/15 text-emerald-400"
-                            : "bg-rose-500/15 text-rose-400"
+                            ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60"
+                            : "bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 border-rose-200 dark:border-rose-800/60"
                         }`}
                       >
                         {isBull ? (
@@ -349,8 +311,8 @@ export function StockTable({
                         {stock.change_pct?.toFixed(2)}%
                       </span>
                       <span
-                        className={`text-[10px] font-medium mt-0.5 ${
-                          isBull ? "text-emerald-500" : "text-rose-500"
+                        className={`text-[10px] font-semibold mt-0.5 ${
+                          isBull ? "text-emerald-700 dark:text-emerald-400" : "text-rose-700 dark:text-rose-400"
                         }`}
                       >
                         {isBull ? "+₹" : "-₹"}
@@ -362,13 +324,13 @@ export function StockTable({
                   {/* Day's Range */}
                   <td className="py-3 px-3 hidden lg:table-cell">
                     <div className="flex flex-col gap-1 w-32 mx-auto">
-                      <div className="flex justify-between text-[10px] text-slate-400">
+                      <div className="flex justify-between text-[10px] text-zinc-600 dark:text-zinc-400 font-medium">
                         <span>L: ₹{stock.day_low?.toFixed(1)}</span>
                         <span>H: ₹{stock.day_high?.toFixed(1)}</span>
                       </div>
-                      <div className="h-1.5 bg-dark-750 rounded-full overflow-hidden relative">
+                      <div className="h-1.5 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden relative">
                         <div
-                          className="absolute top-0 bottom-0 bg-gradient-to-r from-rose-500 via-amber-400 to-emerald-400 rounded-full"
+                          className="absolute top-0 bottom-0 bg-black dark:bg-white rounded-full"
                           style={{
                             left: "0%",
                             width: `${dayProgress}%`
@@ -378,19 +340,13 @@ export function StockTable({
                     </div>
                   </td>
 
-                  {/* Volume & Volume Ratio */}
+                  {/* Volume */}
                   <td className="py-3 px-3 text-right hidden sm:table-cell">
                     <div className="flex flex-col items-end">
-                      <span className="text-slate-200 font-medium">
+                      <span className="text-black dark:text-white font-bold">
                         {(stock.volume / 100000).toFixed(2)} L
                       </span>
-                      <span
-                        className={`text-[10px] font-semibold ${
-                          stock.volume_ratio >= 1.5
-                            ? "text-amber-400"
-                            : "text-slate-500"
-                        }`}
-                      >
+                      <span className="text-[10px] text-zinc-500 font-medium">
                         {stock.volume_ratio}x 20D Avg
                       </span>
                     </div>
@@ -402,7 +358,7 @@ export function StockTable({
                       <span className={`text-xs ${getRsiColor(stock.rsi_14)}`}>
                         {stock.rsi_14?.toFixed(1) || 50.0}
                       </span>
-                      <span className="text-[10px] text-slate-500 uppercase">
+                      <span className="text-[9px] text-zinc-500 uppercase font-semibold">
                         {stock.rsi_14 >= 70
                           ? "Overbought"
                           : stock.rsi_14 <= 35
@@ -415,22 +371,18 @@ export function StockTable({
                   {/* 52W High Range */}
                   <td className="py-3 px-3 hidden md:table-cell">
                     <div className="flex flex-col gap-1 w-28 mx-auto">
-                      <div className="flex justify-between text-[10px]">
-                        <span className="text-slate-400">
+                      <div className="flex justify-between text-[10px] font-medium">
+                        <span className="text-zinc-600 dark:text-zinc-400">
                           {stock.dist_52w_high_pct >= 0 ? "+" : ""}
                           {stock.dist_52w_high_pct}%
                         </span>
-                        <span className="text-slate-500">
+                        <span className="text-zinc-500">
                           ₹{stock.week_52_high?.toFixed(0)}
                         </span>
                       </div>
-                      <div className="h-1.5 bg-dark-750 rounded-full overflow-hidden">
+                      <div className="h-1.5 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
                         <div
-                          className={`h-full rounded-full ${
-                            stock.dist_52w_high_pct > -5
-                              ? "bg-emerald-400"
-                              : "bg-slate-500"
-                          }`}
+                          className="h-full bg-black dark:bg-white rounded-full"
                           style={{ width: `${progress52}%` }}
                         />
                       </div>
@@ -438,50 +390,36 @@ export function StockTable({
                   </td>
 
                   {/* P/E */}
-                  <td className="py-3 px-3 text-right hidden xl:table-cell text-slate-300">
+                  <td className="py-3 px-3 text-right hidden xl:table-cell text-zinc-800 dark:text-zinc-200 font-medium">
                     {stock.pe_ratio > 0 ? stock.pe_ratio.toFixed(1) : "—"}
                   </td>
 
                   {/* Market Cap */}
-                  <td className="py-3 px-3 text-right hidden xl:table-cell text-slate-300">
+                  <td className="py-3 px-3 text-right hidden xl:table-cell text-zinc-800 dark:text-zinc-200 font-medium">
                     ₹{Number(stock.market_cap_cr).toLocaleString("en-IN")} Cr
                   </td>
 
-                  {/* Tech Score & Signal */}
+                  {/* Signal */}
                   <td className="py-3 px-3 text-center">
-                    <div className="flex flex-col items-center gap-1">
-                      <span
-                        className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${getSignalBadge(
-                          stock.tech_signal,
-                          stock.tech_color
-                        )}`}
-                      >
+                    <div className="flex flex-col items-center gap-0.5">
+                      <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-zinc-100 dark:bg-zinc-900 text-black dark:text-white border border-zinc-300 dark:border-zinc-700">
                         {stock.tech_signal}
                       </span>
-                      <span className="text-[10px] text-slate-500">
+                      <span className="text-[9px] text-zinc-500 font-mono">
                         {stock.tech_score}/100
                       </span>
                     </div>
                   </td>
 
-                  {/* Actions */}
+                  {/* Action: Open Chart */}
                   <td className="py-3 px-3 text-center">
-                    <div className="flex items-center justify-center gap-1.5">
-                      <button
-                        onClick={() => onOpenChart(stock.symbol, stock.exchange)}
-                        className="p-1.5 rounded-lg bg-dark-800 hover:bg-emerald-500/20 text-slate-300 hover:text-emerald-400 border border-dark-750 transition"
-                        title="Interactive Candlestick Chart"
-                      >
-                        <LineChart className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => onOpenAlertModal(stock)}
-                        className="p-1.5 rounded-lg bg-dark-800 hover:bg-amber-500/20 text-slate-300 hover:text-amber-400 border border-dark-750 transition"
-                        title="Create Price Alert"
-                      >
-                        <Bell className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => onOpenChart(stock.symbol, stock.exchange)}
+                      className="p-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-black dark:text-white border border-zinc-200 dark:border-zinc-800 transition shadow-sm"
+                      title="Open Interactive Chart"
+                    >
+                      <LineChart className="w-3.5 h-3.5" />
+                    </button>
                   </td>
                 </tr>
               );
@@ -492,18 +430,18 @@ export function StockTable({
 
       {/* Modern Responsive Pagination Footer */}
       {totalPages > 1 && setPage && (
-        <div className="border-t border-dark-800 bg-dark-950/90 px-4 py-3 flex flex-wrap items-center justify-between gap-4 select-none">
+        <div className="border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 px-4 py-3 flex flex-wrap items-center justify-between gap-4 select-none">
           {/* Left: Rows Per Page & Record Info */}
-          <div className="flex items-center gap-3 text-xs text-slate-400">
+          <div className="flex items-center gap-3 text-xs text-zinc-600 dark:text-zinc-400">
             <div className="flex items-center gap-1.5">
-              <span>Rows per page:</span>
+              <span>Rows:</span>
               <select
                 value={pageSize}
                 onChange={(e) => {
                   if (setPageSize) setPageSize(Number(e.target.value));
                   if (setPage) setPage(1);
                 }}
-                className="bg-dark-850 border border-dark-750 text-slate-200 text-xs rounded-lg px-2 py-1 focus:border-emerald-500 focus:outline-none cursor-pointer"
+                className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-black dark:text-white text-xs rounded-lg px-2 py-1 focus:outline-none cursor-pointer"
               >
                 <option value={25}>25</option>
                 <option value={50}>50</option>
@@ -512,18 +450,18 @@ export function StockTable({
               </select>
             </div>
 
-            <span className="hidden sm:inline text-slate-700">|</span>
+            <span className="hidden sm:inline text-zinc-300 dark:text-zinc-700">|</span>
 
             <span className="hidden sm:inline font-tabular">
-              Showing <strong className="text-white">{((page - 1) * pageSize) + 1}–{Math.min(page * pageSize, total)}</strong> of{" "}
-              <strong className="text-white">{total.toLocaleString()}</strong> Indian Equities
+              Showing <strong className="text-black dark:text-white">{((page - 1) * pageSize) + 1}–{Math.min(page * pageSize, total)}</strong> of{" "}
+              <strong className="text-black dark:text-white">{total.toLocaleString()}</strong> Equities
             </span>
           </div>
 
           {/* Right: Page Navigation & Quick Jump */}
           <div className="flex items-center gap-2 flex-wrap">
             {/* Quick Jump Input */}
-            <form onSubmit={handleJumpSubmit} className="hidden md:flex items-center gap-1 mr-2 text-xs text-slate-400">
+            <form onSubmit={handleJumpSubmit} className="hidden md:flex items-center gap-1 mr-2 text-xs text-zinc-600 dark:text-zinc-400">
               <span>Go to:</span>
               <input
                 type="number"
@@ -532,7 +470,7 @@ export function StockTable({
                 value={jumpPageInput}
                 onChange={(e) => setJumpPageInput(e.target.value)}
                 placeholder={page.toString()}
-                className="w-12 bg-dark-850 border border-dark-750 rounded px-1.5 py-0.5 text-center text-xs text-white focus:border-emerald-500 focus:outline-none"
+                className="w-12 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded px-1.5 py-0.5 text-center text-xs text-black dark:text-white focus:outline-none"
               />
             </form>
 
@@ -541,7 +479,7 @@ export function StockTable({
               <button
                 onClick={() => setPage(1)}
                 disabled={page <= 1}
-                className="p-1.5 rounded-lg bg-dark-850 hover:bg-dark-800 disabled:opacity-30 disabled:cursor-not-allowed border border-dark-750 text-slate-300 transition"
+                className="p-1.5 rounded-lg bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed border border-zinc-200 dark:border-zinc-800 text-black dark:text-white transition shadow-sm"
                 title="First Page"
               >
                 <ChevronsLeft className="w-3.5 h-3.5" />
@@ -549,30 +487,29 @@ export function StockTable({
 
               {/* Prev Page */}
               <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                onClick={() => setPage(page - 1)}
                 disabled={page <= 1}
-                className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-dark-850 hover:bg-dark-800 disabled:opacity-30 disabled:cursor-not-allowed border border-dark-750 text-slate-300 text-xs transition"
+                className="p-1.5 rounded-lg bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed border border-zinc-200 dark:border-zinc-800 text-black dark:text-white transition shadow-sm"
                 title="Previous Page"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Prev</span>
               </button>
 
-              {/* Numbered Page Buttons */}
+              {/* Page Number Buttons */}
               <div className="flex items-center gap-1">
                 {getPageNumbers(page, totalPages).map((p, idx) =>
                   p === "..." ? (
-                    <span key={`ellipsis-${idx}`} className="px-1 text-slate-600 text-xs font-mono">
-                      •••
+                    <span key={`dots-${idx}`} className="px-1 text-xs text-zinc-400">
+                      ...
                     </span>
                   ) : (
                     <button
                       key={p}
                       onClick={() => setPage(p)}
-                      className={`min-w-[28px] h-7 px-2 rounded-lg text-xs font-medium font-tabular transition ${
+                      className={`min-w-[28px] h-7 px-1.5 rounded-lg text-xs font-bold transition ${
                         page === p
-                          ? "bg-emerald-500 text-dark-950 font-bold shadow-md shadow-emerald-500/20"
-                          : "bg-dark-850 hover:bg-dark-800 text-slate-300 border border-dark-750"
+                          ? "bg-black text-white dark:bg-white dark:text-black shadow-sm"
+                          : "bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800"
                       }`}
                     >
                       {p}
@@ -583,12 +520,11 @@ export function StockTable({
 
               {/* Next Page */}
               <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                onClick={() => setPage(page + 1)}
                 disabled={page >= totalPages}
-                className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-dark-850 hover:bg-dark-800 disabled:opacity-30 disabled:cursor-not-allowed border border-dark-750 text-slate-300 text-xs transition"
+                className="p-1.5 rounded-lg bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed border border-zinc-200 dark:border-zinc-800 text-black dark:text-white transition shadow-sm"
                 title="Next Page"
               >
-                <span className="hidden sm:inline">Next</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
 
@@ -596,7 +532,7 @@ export function StockTable({
               <button
                 onClick={() => setPage(totalPages)}
                 disabled={page >= totalPages}
-                className="p-1.5 rounded-lg bg-dark-850 hover:bg-dark-800 disabled:opacity-30 disabled:cursor-not-allowed border border-dark-750 text-slate-300 transition"
+                className="p-1.5 rounded-lg bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed border border-zinc-200 dark:border-zinc-800 text-black dark:text-white transition shadow-sm"
                 title="Last Page"
               >
                 <ChevronsRight className="w-3.5 h-3.5" />

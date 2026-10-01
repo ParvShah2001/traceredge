@@ -29,8 +29,8 @@ export const PRESETS = [
 
 export function QuickPresets({ activePreset, onSelectPreset }) {
   return (
-    <div className="overflow-x-auto no-scrollbar py-2">
-      <div className="flex items-center gap-2 min-w-max">
+    <div className="overflow-x-auto no-scrollbar py-1">
+      <div className="flex items-center gap-1.5 sm:gap-2 min-w-max">
         {PRESETS.map((p) => {
           const Icon = p.icon;
           const isActive = activePreset === p.id;
@@ -38,16 +38,20 @@ export function QuickPresets({ activePreset, onSelectPreset }) {
             <button
               key={p.id}
               onClick={() => onSelectPreset(p.id)}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition border ${
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition border select-none ${
                 isActive
-                  ? "bg-emerald-500/15 border-emerald-500/50 text-emerald-400 shadow-sm shadow-emerald-500/10"
-                  : "bg-dark-850 hover:bg-dark-800 border-dark-800 text-slate-300 hover:text-white"
+                  ? "bg-black text-white dark:bg-white dark:text-black border-black dark:border-white shadow-sm"
+                  : "bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:text-black dark:hover:text-white"
               }`}
             >
-              <Icon className={`w-3.5 h-3.5 ${isActive ? "text-emerald-400" : "text-slate-400"}`} />
+              <Icon className={`w-3.5 h-3.5 ${isActive ? "text-current" : "text-zinc-500 dark:text-zinc-400"}`} />
               <span>{p.label}</span>
               {p.badge && (
-                <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-semibold uppercase">
+                <span className={`text-[9px] px-1 py-0.2 rounded font-black uppercase ${
+                  isActive
+                    ? "bg-white text-black dark:bg-black dark:text-white"
+                    : "bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200"
+                }`}>
                   {p.badge}
                 </span>
               )}

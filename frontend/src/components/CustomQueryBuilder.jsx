@@ -3,9 +3,7 @@ import {
   Plus,
   Trash2,
   Sliders,
-  CheckCircle,
   Sparkles,
-  Zap,
   Bookmark,
   X,
   Play
@@ -43,7 +41,7 @@ export const OPERATORS = [
 
 export const STRATEGY_TEMPLATES = [
   {
-    name: "User Example 1: Bullish Gap-Up (Low > Prev High)",
+    name: "Bullish Gap-Up (Low > Prev High)",
     desc: "Today's low is greater than previous day's high (unfilled gap up)",
     logic: "AND",
     rules: [
@@ -58,7 +56,7 @@ export const STRATEGY_TEMPLATES = [
     ]
   },
   {
-    name: "User Example 2: Open = Low Bullish Surge",
+    name: "Open = Low Bullish Surge",
     desc: "Today's low equals today's open (strong buyers right from open)",
     logic: "AND",
     rules: [
@@ -261,39 +259,39 @@ export function CustomQueryBuilder({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 md:p-6 overflow-y-auto animate-fadeIn">
-      <div className="bg-dark-900 border border-dark-750 rounded-2xl w-full max-w-4xl overflow-hidden shadow-2xl flex flex-col my-auto max-h-[92vh]">
+      <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-2xl w-full max-w-4xl overflow-hidden shadow-2xl flex flex-col my-auto max-h-[92vh]">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-dark-800 flex items-center justify-between bg-dark-950/70">
+        <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50 dark:bg-zinc-950">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <div className="w-8 h-8 rounded-lg bg-black text-white dark:bg-white dark:text-black flex items-center justify-center">
               <Sliders className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white tracking-tight">
+              <h2 className="text-base sm:text-lg font-black text-black dark:text-white tracking-tight">
                 Custom Stock Screener Formula Builder
               </h2>
-              <p className="text-xs text-slate-400">
-                Filter Indian equities by custom comparative rules (e.g. Today's Low &gt; Prev High, Open = Low)
+              <p className="text-xs text-zinc-600 dark:text-zinc-400 font-medium">
+                Filter Indian equities by custom comparative rules (e.g. Low &gt; Prev High, Low == Open)
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg bg-dark-800 hover:bg-dark-750 text-slate-400 hover:text-white transition"
+            className="p-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-6 overflow-y-auto flex flex-col gap-6 text-xs">
+        <div className="p-4 sm:p-6 overflow-y-auto flex flex-col gap-6 text-xs">
           {/* Quick Popular Strategy Templates */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
-              <span className="font-semibold text-slate-300 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span className="font-bold text-black dark:text-white flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-zinc-500" />
                 <span>One-Click Strategy Templates</span>
               </span>
-              <span className="text-[11px] text-slate-500">
+              <span className="text-[11px] text-zinc-500">
                 Select a preset to populate rules automatically
               </span>
             </div>
@@ -303,12 +301,12 @@ export function CustomQueryBuilder({
                 <button
                   key={idx}
                   onClick={() => handleLoadTemplate(tmpl)}
-                  className="text-left p-2.5 rounded-xl bg-dark-850 hover:bg-dark-800 border border-dark-750 hover:border-emerald-500/40 transition group flex flex-col justify-between"
+                  className="text-left p-2.5 rounded-xl bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-900 dark:hover:bg-zinc-850 border border-zinc-200 dark:border-zinc-800 transition group flex flex-col justify-between"
                 >
-                  <span className="font-bold text-white group-hover:text-emerald-400 transition text-[11px]">
+                  <span className="font-bold text-black dark:text-white group-hover:underline transition text-[11px]">
                     {tmpl.name}
                   </span>
-                  <span className="text-[10px] text-slate-400 mt-1 line-clamp-2">
+                  <span className="text-[10px] text-zinc-600 dark:text-zinc-400 mt-1 line-clamp-2">
                     {tmpl.desc}
                   </span>
                 </button>
@@ -317,28 +315,28 @@ export function CustomQueryBuilder({
           </div>
 
           {/* Active Rules List */}
-          <div className="flex flex-col gap-3 bg-dark-950 p-4 rounded-xl border border-dark-800">
-            <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 bg-zinc-50 dark:bg-zinc-950 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-3">
-                <span className="font-bold text-slate-200">Conditions List</span>
+                <span className="font-bold text-black dark:text-white">Conditions</span>
                 {/* Logic Toggle */}
-                <div className="flex items-center bg-dark-900 border border-dark-750 rounded-lg p-0.5">
+                <div className="flex items-center bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-0.5">
                   <button
                     onClick={() => setLogic("AND")}
-                    className={`px-2.5 py-1 rounded text-[11px] font-semibold transition ${
+                    className={`px-2.5 py-1 rounded text-[11px] font-bold transition ${
                       logic === "AND"
-                        ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
-                        : "text-slate-400 hover:text-white"
+                        ? "bg-black text-white dark:bg-white dark:text-black shadow-sm"
+                        : "text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white"
                     }`}
                   >
                     Match ALL (AND)
                   </button>
                   <button
                     onClick={() => setLogic("OR")}
-                    className={`px-2.5 py-1 rounded text-[11px] font-semibold transition ${
+                    className={`px-2.5 py-1 rounded text-[11px] font-bold transition ${
                       logic === "OR"
-                        ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
-                        : "text-slate-400 hover:text-white"
+                        ? "bg-black text-white dark:bg-white dark:text-black shadow-sm"
+                        : "text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white"
                     }`}
                   >
                     Match ANY (OR)
@@ -348,7 +346,7 @@ export function CustomQueryBuilder({
 
               <button
                 onClick={handleAddRule}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 font-semibold transition"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black text-white dark:bg-white dark:text-black font-bold transition shadow-sm"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Add Condition</span>
@@ -360,9 +358,9 @@ export function CustomQueryBuilder({
               {rules.map((rule, idx) => (
                 <div
                   key={idx}
-                  className="flex flex-wrap items-center gap-2 p-2.5 bg-dark-900 rounded-lg border border-dark-750"
+                  className="flex flex-wrap items-center gap-2 p-2.5 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-sm"
                 >
-                  <span className="w-5 text-center font-bold text-slate-500">
+                  <span className="w-5 text-center font-bold text-zinc-400">
                     #{idx + 1}
                   </span>
 
@@ -370,7 +368,7 @@ export function CustomQueryBuilder({
                   <select
                     value={rule.left_field}
                     onChange={(e) => handleRuleChange(idx, "left_field", e.target.value)}
-                    className="bg-dark-850 border border-dark-750 rounded px-2.5 py-1.5 text-white font-medium focus:border-emerald-500 focus:outline-none flex-1 min-w-[140px]"
+                    className="bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded px-2.5 py-1.5 text-black dark:text-white font-semibold focus:outline-none flex-1 min-w-[130px]"
                   >
                     {FILTER_FIELDS.map((f) => (
                       <option key={f.id} value={f.id}>
@@ -383,7 +381,7 @@ export function CustomQueryBuilder({
                   <select
                     value={rule.operator}
                     onChange={(e) => handleRuleChange(idx, "operator", e.target.value)}
-                    className="bg-dark-850 border border-dark-750 rounded px-2 py-1.5 text-emerald-400 font-bold focus:border-emerald-500 focus:outline-none w-28"
+                    className="bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded px-2 py-1.5 text-black dark:text-white font-bold focus:outline-none w-28"
                   >
                     {OPERATORS.map((op) => (
                       <option key={op.id} value={op.id}>
@@ -402,10 +400,9 @@ export function CustomQueryBuilder({
                         rule.right_type === "field" ? "number" : "field"
                       )
                     }
-                    className="px-2 py-1.5 bg-dark-800 hover:bg-dark-750 rounded border border-dark-700 text-slate-300 text-[11px] font-mono"
-                    title="Toggle between comparing against another stock attribute or a static number"
+                    className="px-2 py-1.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 rounded border border-zinc-200 dark:border-zinc-700 text-black dark:text-white text-[11px] font-bold"
                   >
-                    {rule.right_type === "field" ? "Stock Field" : "Number"}
+                    {rule.right_type === "field" ? "Field" : "Value"}
                   </button>
 
                   {/* Right Value / Field */}
@@ -413,7 +410,7 @@ export function CustomQueryBuilder({
                     <select
                       value={rule.right_field || "open"}
                       onChange={(e) => handleRuleChange(idx, "right_field", e.target.value)}
-                      className="bg-dark-850 border border-dark-750 rounded px-2.5 py-1.5 text-white font-medium focus:border-emerald-500 focus:outline-none flex-1 min-w-[140px]"
+                      className="bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded px-2.5 py-1.5 text-black dark:text-white font-semibold focus:outline-none flex-1 min-w-[130px]"
                     >
                       {FILTER_FIELDS.map((f) => (
                         <option key={f.id} value={f.id}>
@@ -430,13 +427,13 @@ export function CustomQueryBuilder({
                       onChange={(e) =>
                         handleRuleChange(idx, "right_value", parseFloat(e.target.value) || 0)
                       }
-                      className="bg-dark-850 border border-dark-750 rounded px-2.5 py-1.5 text-white focus:border-emerald-500 focus:outline-none flex-1 min-w-[120px]"
+                      className="bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded px-2.5 py-1.5 text-black dark:text-white font-semibold focus:outline-none flex-1 min-w-[120px]"
                     />
                   )}
 
                   {/* Multiplier (e.g. 1.5x) */}
-                  <div className="flex items-center gap-1 bg-dark-850 px-2 py-1 rounded border border-dark-750">
-                    <span className="text-[10px] text-slate-500">×</span>
+                  <div className="flex items-center gap-1 bg-zinc-50 dark:bg-zinc-950 px-2 py-1 rounded border border-zinc-200 dark:border-zinc-800">
+                    <span className="text-[10px] text-zinc-500">×</span>
                     <input
                       type="number"
                       step="0.1"
@@ -445,7 +442,7 @@ export function CustomQueryBuilder({
                       onChange={(e) =>
                         handleRuleChange(idx, "multiplier", parseFloat(e.target.value) || 1.0)
                       }
-                      className="w-12 bg-transparent text-white text-xs focus:outline-none"
+                      className="w-12 bg-transparent text-black dark:text-white text-xs font-semibold focus:outline-none"
                       title="Multiplier applied to right operand"
                     />
                   </div>
@@ -456,8 +453,8 @@ export function CustomQueryBuilder({
                     disabled={rules.length <= 1}
                     className={`p-1.5 rounded transition ${
                       rules.length <= 1
-                        ? "text-slate-600 cursor-not-allowed"
-                        : "text-slate-400 hover:text-rose-400 hover:bg-dark-800"
+                        ? "text-zinc-300 dark:text-zinc-700 cursor-not-allowed"
+                        : "text-zinc-500 hover:text-rose-600 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                     }`}
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -468,20 +465,20 @@ export function CustomQueryBuilder({
           </div>
 
           {/* Save to Saved Screens */}
-          <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-dark-850 rounded-xl border border-dark-750">
+          <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-zinc-50 dark:bg-zinc-950 rounded-xl border border-zinc-200 dark:border-zinc-800">
             <div className="flex items-center gap-2 flex-1 min-w-[240px]">
-              <Bookmark className="w-4 h-4 text-amber-400" />
+              <Bookmark className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
               <input
                 type="text"
                 placeholder="Name this custom strategy to save (e.g. Gap Up Open=Low)..."
                 value={screenName}
                 onChange={(e) => setScreenName(e.target.value)}
-                className="bg-dark-900 border border-dark-750 rounded px-3 py-1.5 text-white text-xs focus:border-amber-400 focus:outline-none flex-1"
+                className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded px-3 py-1.5 text-black dark:text-white text-xs focus:outline-none flex-1 font-medium"
               />
               <button
                 onClick={handleSaveScreen}
                 disabled={!screenName.trim()}
-                className="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-semibold rounded transition disabled:opacity-50"
+                className="px-3 py-1.5 bg-black text-white dark:bg-white dark:text-black font-bold rounded transition disabled:opacity-40 text-xs"
               >
                 Save
               </button>
@@ -489,24 +486,24 @@ export function CustomQueryBuilder({
 
             {savedScreens.length > 0 && (
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-[11px] text-slate-400">My Saved:</span>
+                <span className="text-[11px] text-zinc-500">Saved:</span>
                 {savedScreens.map((s) => (
                   <div
                     key={s.id}
-                    className="flex items-center gap-1 bg-dark-900 px-2 py-1 rounded border border-dark-750 text-slate-300"
+                    className="flex items-center gap-1 bg-white dark:bg-zinc-900 px-2 py-1 rounded border border-zinc-200 dark:border-zinc-800 text-black dark:text-white"
                   >
                     <button
                       onClick={() => {
                         setRules(s.rules);
                         setLogic(s.logic);
                       }}
-                      className="hover:text-emerald-400 font-medium"
+                      className="hover:underline font-bold"
                     >
                       {s.name}
                     </button>
                     <button
                       onClick={() => handleDeleteSavedScreen(s.id)}
-                      className="text-slate-500 hover:text-rose-400 ml-1"
+                      className="text-zinc-400 hover:text-rose-600 ml-1"
                     >
                       ×
                     </button>
@@ -518,30 +515,30 @@ export function CustomQueryBuilder({
         </div>
 
         {/* Footer Actions */}
-        <div className="px-6 py-4 bg-dark-950 border-t border-dark-800 flex items-center justify-between">
+        <div className="px-6 py-4 bg-zinc-50 dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
           <button
             onClick={() => {
               onClearRules();
               onClose();
             }}
-            className="px-4 py-2 rounded-lg bg-dark-850 hover:bg-dark-800 text-slate-400 hover:text-white transition font-medium"
+            className="px-4 py-2 rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:text-black dark:hover:text-white transition font-bold"
           >
-            Clear Custom Rules
+            Clear Rules
           </button>
 
           <div className="flex items-center gap-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 rounded-lg bg-dark-850 hover:bg-dark-800 text-slate-300 hover:text-white transition font-medium"
+              className="px-4 py-2 rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:text-black dark:hover:text-white transition font-bold"
             >
               Cancel
             </button>
             <button
               onClick={handleApply}
-              className="flex items-center gap-2 px-5 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-dark-950 font-bold shadow-lg shadow-emerald-500/20 transition"
+              className="flex items-center gap-2 px-5 py-2 rounded-lg bg-black text-white dark:bg-white dark:text-black font-extrabold shadow-sm transition"
             >
-              <Play className="w-4 h-4 fill-dark-950" />
-              <span>Apply Custom Screen ({rules.length} Rules)</span>
+              <Play className="w-4 h-4 fill-current" />
+              <span>Apply Strategy ({rules.length} Rules)</span>
             </button>
           </div>
         </div>
