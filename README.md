@@ -12,6 +12,13 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-white?style=for-the-badge)](LICENSE)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](Dockerfile)
 
+<br/>
+<br/>
+
+<img src="docs/assets/social_preview.png" alt="TracerEdge Institutional Screener Banner" width="100%" />
+
+<br/>
+
 <p align="center">
   A high-speed, minimalist, real-time stock screening platform tracking the complete Indian market universe across the <b>National Stock Exchange (NSE)</b> and <b>Bombay Stock Exchange (BSE)</b>.
 </p>
@@ -45,10 +52,15 @@ Most retail Indian stock screeners either restrict screening to the Nifty 50 / L
 +-------------------------------------------------------------------------------------------------------------+
 ```
 
-> **UI Previews & Media Artifacts:**
-> - **Screener & Table**: [Dashboard Screenshot Placeholder](docs/assets/dashboard_preview.png)
-> - **Custom Query Builder**: [Query Builder Modal Placeholder](docs/assets/query_builder_preview.png)
-> - **TradingView Candlestick Modal**: [Candlestick Chart Modal Placeholder](docs/assets/chart_modal_preview.png)
+<p align="center">
+  <img src="docs/assets/dashboard_preview.png" alt="TracerEdge Real-Time Screener Table" width="100%" />
+</p>
+
+<p align="center">
+  <img src="docs/assets/query_builder_preview.png" alt="Custom Strategy Query Builder" width="49%" />
+  &nbsp;
+  <img src="docs/assets/chart_modal_preview.png" alt="TradingView Candlestick Modal" width="49%" />
+</p>
 
 ---
 
