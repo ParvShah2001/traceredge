@@ -13,7 +13,8 @@ from typing import Dict, List, Any, Optional, Tuple
 
 logger = logging.getLogger("indianapi_client")
 
-DEFAULT_API_KEY = os.environ.get("INDIAN_API_KEY", "sk-live-LscqPV40jT6yOxiHlyNqdrgguYUZYQRc0mtSTd6o")
+# API key configured via environment variable
+DEFAULT_API_KEY = os.environ.get("INDIAN_API_KEY", "").strip()
 BASE_URL = "https://stock.indianapi.in"
 
 
@@ -28,6 +29,10 @@ class IndianApiClient:
         self.news_ttl = 300       # 5m cache for news
 
     def _make_request(self, endpoint: str, params: Optional[Dict[str, str]] = None) -> Optional[Any]:
+        if not self.api_key:
+            logger.debug("IndianAPI.in request skipped: INDIAN_API_KEY not set in environment.")
+            return None
+
         url = f"{BASE_URL}/{endpoint.lstrip('/')}"
         if params:
             url += f"?{urllib.parse.urlencode(params)}"

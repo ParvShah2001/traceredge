@@ -50,18 +50,27 @@ manager = ConnectionManager()
 
 
 def clean_memory():
-    """Forces Python garbage collection and instructs Linux glibc to release unused heap pages."""
+    """
+    Forces Python garbage collection and instructs the Linux glibc allocator
+    to release unused arena heap pages back to the OS via malloc_trim(0).
+    Critical for low-memory container environments (e.g., 512MB RAM cloud tiers).
+    """
     import gc
     gc.collect()
     try:
         import ctypes
+        # Available on Linux glibc; safely ignored on Windows / macOS
         ctypes.CDLL("libc.so.6").malloc_trim(0)
     except Exception:
         pass
 
 
 async def live_ticks_broadcast_loop():
-    """Background task generating live ticks during market hours or heartbeat when closed."""
+    """
+    Background worker streaming real-time micro-ticks over WebSockets.
+    - During Market Hours (09:15–15:30 IST): Broadcasts ticks every 1.5s when clients are connected.
+    - Outside Market Hours: Emits a 15s heartbeat snapshot without simulated drift, preserving official EOD prices.
+    """
     while True:
         try:
             if manager.active_connections:

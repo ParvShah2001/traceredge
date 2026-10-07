@@ -1,31 +1,159 @@
-# ⚡ TracerEdge | Institutional Indian Equity Screener
+<div align="center">
 
-**TracerEdge** is a minimalist, high-speed, real-time stock screener designed for the complete Indian market across both the **National Stock Exchange (NSE)** and **Bombay Stock Exchange (BSE)**.
+# ⚡ TracerEdge
+
+### Institutional-Grade Real-Time Indian Equity Screener & Streaming Engine
+
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-8.3-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![TailwindCSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-white?style=for-the-badge)](LICENSE)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](Dockerfile)
+
+<p align="center">
+  A high-speed, minimalist, real-time stock screening platform tracking the complete Indian market universe across the <b>National Stock Exchange (NSE)</b> and <b>Bombay Stock Exchange (BSE)</b>.
+</p>
+
+</div>
 
 ---
 
-## 🌟 Key Highlights
+## 📌 Overview
 
-- **Complete Indian Market Universe**: Tracks all **7,640+** active equities (**2,587 pure NSE** equities and **5,053 pure BSE** equities with official scrip codes).
-- **Zero Simulated Ticks When Market Closes**: Outside trading hours (09:15–15:30 IST weekdays), simulated price drift is completely disabled.
-- **Verified Official EOD Settlement**: Directly pulls official end-of-day settlement Bhavcopies from NSE and BSE, verifying exact closing prices with zero discrepancy.
-- **Minimalist & High-Contrast UI**: Institutional design language with instant Dark/Light theme toggle, engineered for crystal-clear readability.
-- **Mobile & Tablet Optimized**: Sticky stock headers on horizontal scroll, responsive drawers, and touch-friendly controls.
-- **Unified Single-Server Architecture**: No separate frontend dev server required in production. A single high-performance FastAPI/Uvicorn server delivers the optimized React frontend, REST endpoints, and live WebSocket streaming.
+Most retail Indian stock screeners either restrict screening to the Nifty 50 / Large Caps, mix NSE and BSE prices into conflicting quotes, or suffer from sluggish multi-second latency and stale settlement data.
+
+**TracerEdge** solves this by indexing the **entire 7,640+ dual-exchange Indian equity universe** in a high-performance in-memory cache. It broadcasts sub-second tick updates over WebSockets during market hours (09:15–15:30 IST), enables instantaneous microsecond formula evaluation across technical and fundamental metrics, and locks official End-Of-Day (EOD) settlement directly from official NSE and BSE Bhavcopies with zero discrepancy.
 
 ---
 
-## 🚀 Quick Start (Local Run)
+## 📸 Interface Preview
 
-### Windows
-Double-click `start_traceredge.bat` or run:
+```
++-------------------------------------------------------------------------------------------------------------+
+| [⚡ TRACEREDGE]   [● MARKET OPEN 09:15-15:30 IST]       [Universe: 7,654]  [NIFTY 50: 24,750 ▲] [SENSEX: 81,200 ▲] |
++-------------------------------------------------------------------------------------------------------------+
+| [ 🔍 Search 7,650+ stocks (RELIANCE, 500325)... ]   [ ⚙️ Custom Query (3) ]   [ ↺ Reset ]   Showing 1–50 of 7,654 |
++-------------------------------------------------------------------------------------------------------------+
+| TICKER / COMPANY         | EXCH | PRICE (₹)  | CHG %   | DAY HIGH  | DAY LOW   | VOLUME   | RSI(14) | M.CAP (Cr)  |
+|--------------------------|------|------------|---------|-----------|-----------|----------|---------|-------------|
+| RELIANCE Industries      | NSE  |  2,985.40  | +1.24%  | 2,998.00  | 2,950.00  | 4.52M    |  58.4   | 20,20,450   |
+| TATA CONSULTANCY SERV.   | NSE  |  4,250.75  | -0.32%  | 4,285.00  | 4,230.10  | 1.15M    |  51.2   | 15,38,000   |
+| HDFC BANK LTD            | NSE  |  1,650.20  | +0.48%  | 1,662.00  | 1,644.50  | 8.94M    |  49.8   | 12,55,000   |
+| RELIANCE IND (#500325)   | BSE  |  2,984.95  | +1.21%  | 2,997.50  | 2,949.80  | 380K     |  58.2   | 20,20,450   |
++-------------------------------------------------------------------------------------------------------------+
+```
+
+> **UI Previews & Media Artifacts:**
+> - **Screener & Table**: [Dashboard Screenshot Placeholder](docs/assets/dashboard_preview.png)
+> - **Custom Query Builder**: [Query Builder Modal Placeholder](docs/assets/query_builder_preview.png)
+> - **TradingView Candlestick Modal**: [Candlestick Chart Modal Placeholder](docs/assets/chart_modal_preview.png)
+
+---
+
+## ⚡ Key Features
+
+- **Complete Dual-Exchange Universe (7,640+ Equities)**:
+  - Tracks **2,587+ pure NSE equities** (Series `EQ`, `BE`, `SM`).
+  - Tracks **5,053+ pure BSE equities** with official 6-digit scrip codes (e.g. `#500325`).
+  - Independent symbol-level order book tracking prevents cross-exchange pricing collisions.
+- **Zero Simulated Drift When Closed**:
+  - Automatically respects Indian trading hours (**09:15–15:30 IST weekdays**).
+  - Price simulations are strictly disabled outside market hours to preserve authentic closing figures.
+- **Official Bhavcopy EOD Settlement Reconciliation**:
+  - Pulls consolidated clearing Bhavcopies directly from NSE and BSE repositories.
+  - Automatically locks official settlement closing prices, day highs, lows, and volume.
+- **Custom Dynamic Formula Query Builder**:
+  - Construct institutional-grade conditional screens on the fly (e.g., `Today's Low > Yesterday's High AND Today's Low == Today's Open`).
+  - Supports field-to-field comparisons, field-to-value filters, multipliers, and float equality tolerance.
+- **Sub-Second Live WebSocket Streaming (`/ws/live`)**:
+  - High-frequency tick broadcasts with advance/decline breadth metrics and real-time green/red price flashes.
+  - Row-level React memoization ensures smooth 60 FPS table rendering with zero DOM layout thrashing.
+- **TradingView-Standard Candlestick Modal**:
+  - Built with Lightweight Charts featuring `#089981` (bullish emerald) and `#f23645` (bearish red) candles.
+  - Live cursor readout showing `O: ₹... H: ₹... L: ₹... C: ₹... Vol: ...` with integrated volume histogram.
+- **Ultra-Minimalist Pitch-Black Dark Theme**:
+  - Tailored institutional OLED aesthetic (`#000000`, sharp `#ffffff` text, `#18181b` borders).
+  - Fully responsive on mobile, tablet, and widescreen monitors with sticky symbol columns.
+- **Production Single-Server Architecture**:
+  - A single FastAPI process simultaneously serves REST endpoints, WebSocket streams, and compiled React SPA assets.
+  - Includes proactive Linux `malloc_trim(0)` heap management engineered specifically for 512MB RAM cloud tiers.
+
+---
+
+## 🛠️ Tech Stack
+
+| Domain | Technology | Description |
+| :--- | :--- | :--- |
+| **Backend Framework** | [FastAPI](https://fastapi.tiangolo.com/) | High-performance async Python web framework |
+| **Server / ASGI** | [Uvicorn](https://www.uvicorn.org/) | Lightning-fast ASGI server implementation |
+| **Real-Time Transport** | [WebSockets](https://websockets.readthedocs.io/) | Bidirectional low-latency tick broadcast |
+| **Market Data Ingestion** | `nselib`, `bseindia`, `yfinance` | Official Bhavcopy parsers & multi-ticker batch quoting |
+| **Frontend Framework** | [React 19](https://react.dev/) + [Vite](https://vitejs.dev/) | Modern reactive client with optimized asset bundling |
+| **Styling & UI** | [Tailwind CSS](https://tailwindcss.com/) + [Lucide Icons](https://lucide.dev/) | Pitch-black institutional design system |
+| **Financial Charting** | [Lightweight Charts](https://tradingview.github.io/lightweight-charts/) | High-performance TradingView canvas candlestick charts |
+| **DevOps & Containers** | [Docker](https://www.docker.com/) | Multi-stage build container with low-memory tunings |
+
+---
+
+## 📂 Project Structure
+
+```
+traceredge/
+├── backend/
+│   ├── main.py              # FastAPI core: REST routes, WebSocket broadcaster & SPA static mount
+│   ├── data_engine.py       # In-memory equity store, Bhavcopy reconciler & filter evaluation
+│   ├── universe_manager.py  # Dual-exchange symbol, BSE scrip code, and ISIN multi-indexer
+│   ├── universe_sync.py     # Continuous sync with official NSE EQUITY_L and BSE scrip master
+│   ├── indicators.py        # Technical indicator library (RSI-14, SMA, EMA, MACD, Bollinger Bands)
+│   ├── indianapi_client.py  # Optional IndianAPI.in client for fundamentals, peers, and news
+│   ├── ramm_stock_api.py    # Multi-ticker Yahoo Finance batch quote retriever with crumb handshake
+│   ├── stocks_data.py       # Reference seed universe and Indian benchmark indices
+│   ├── requirements.txt     # Python backend dependencies
+│   └── data/                # Cached universe master files (ALL_INDIAN_EQUITIES.json)
+├── frontend/
+│   ├── src/
+│   │   ├── components/      # MarketHeader, StockTable, StockChartModal, CustomQueryBuilder, FilterBar
+│   │   ├── hooks/           # useLiveMarket: WebSocket listener, tick processor & sequence counter
+│   │   ├── services/        # API client and WebSocket URL resolver
+│   │   ├── App.jsx          # Root application component with dark mode enforcement
+│   │   └── index.css        # Pure OLED black layout styles
+│   ├── package.json         # React 19 and frontend dependencies
+│   └── vite.config.js       # Vite configuration
+├── docs/
+│   ├── architecture.md      # Detailed system design, data flows & memory management
+│   ├── api.md               # Complete REST and WebSocket endpoint reference
+│   └── query_builder.md     # Custom screening formulas and strategy recipes
+├── Dockerfile               # Multi-stage Docker build (Node frontend compile -> Python runtime)
+├── docker-compose.yml       # Production container orchestration
+├── start_traceredge.bat     # Windows one-click local launcher
+├── start_traceredge.sh      # Linux / macOS one-click local launcher
+├── .env.example             # Template for optional external API keys
+├── .gitignore               # Comprehensive Git ignore rules
+├── LICENSE                  # MIT License
+└── README.md                # Project documentation
+```
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- **Python**: 3.11 or higher
+- **Node.js**: 18.x or higher (only required if building frontend locally)
+- **Git**
+
+---
+
+### Method 1: One-Click Quickstart (Recommended)
+
+#### On Windows:
 ```cmd
 .\start_traceredge.bat
 ```
-Open **[http://localhost:8000](http://localhost:8000)** in your browser.
 
-### Linux / macOS
-Make the script executable and launch:
+#### On Linux / macOS:
 ```bash
 chmod +x start_traceredge.sh
 ./start_traceredge.sh
@@ -34,124 +162,195 @@ Open **[http://localhost:8000](http://localhost:8000)** in your browser.
 
 ---
 
-## 🌐 Production Hosting Guide
+### Method 2: Manual Installation (From Scratch)
 
-TracerEdge is designed for seamless, one-command deployment to any cloud provider or server.
-
-### Option 1: Docker / Docker Compose (Recommended for Any Cloud)
-
-Run with Docker Compose:
+#### 1. Clone Repository & Setup Environment
 ```bash
-docker compose up -d --build
+git clone https://github.com/parvshah/traceredge.git
+cd traceredge
 ```
-Your instance will be running on port `8000`.
 
-### Option 2: Cloud Container Platforms (Render, Railway, Fly.io, DigitalOcean)
+#### 2. Install Backend Dependencies
+```bash
+python -m venv venv
 
-1. Connect your Git repository to **Render**, **Railway**, or **Fly.io**.
-2. Select **Docker** environment (TracerEdge has a multi-stage `Dockerfile` ready).
-3. Set the internal port to `8000`.
-4. Deploy! The multi-stage build will compile the frontend and start the Python server automatically.
+# On Linux/macOS:
+source venv/bin/activate
 
-### Option 3: Linux VPS (Ubuntu / Debian with systemd & Nginx)
+# On Windows:
+.\venv\Scripts\activate
 
-1. **Clone the repository on your VPS**:
-   ```bash
-   git clone https://github.com/your-username/traceredge.git /opt/traceredge
-   cd /opt/traceredge
-   ```
+pip install --upgrade pip
+pip install -r backend/requirements.txt
+```
 
-2. **Build frontend assets (done once)**:
-   ```bash
-   cd frontend
-   npm ci
-   npm run build
-   cd ..
-   ```
+#### 3. Build Frontend Assets
+```bash
+cd frontend
+npm install
+npm run build
+cd ..
+```
 
-3. **Install Python environment**:
-   ```bash
-   python3 -m venv venv
-   ./venv/bin/pip install --upgrade pip
-   ./venv/bin/pip install -r backend/requirements.txt
-   ```
+#### 4. Configure Environment (Optional)
+```bash
+cp .env.example .env
+```
+*(Optional: add `INDIAN_API_KEY` in `.env` if you have an API key from [IndianAPI.in](https://indianapi.in)).*
 
-4. **Create systemd service (`/etc/systemd/system/traceredge.service`)**:
-   ```ini
-   [Unit]
-   Description=TracerEdge Stock Screener
-   After=network.target
-
-   [Service]
-   User=www-data
-   WorkingDirectory=/opt/traceredge
-   ExecStart=/opt/traceredge/venv/bin/uvicorn main:app --app-dir backend --host 127.0.0.1 --port 8000 --workers 2
-   Restart=always
-
-   [Install]
-   WantedBy=multi-user.target
-   ```
-   Enable and start:
-   ```bash
-   sudo systemctl daemon-reload
-   sudo systemctl enable --now traceredge
-   ```
-
-5. **Nginx Reverse Proxy with WebSocket Support (`/etc/nginx/sites-available/traceredge`)**:
-   ```nginx
-   server {
-       listen 80;
-       server_name yourdomain.com;
-
-       location / {
-           proxy_pass http://127.0.0.1:8000;
-           proxy_http_version 1.1;
-           proxy_set_header Upgrade $http_upgrade;
-           proxy_set_header Connection "upgrade";
-           proxy_set_header Host $host;
-           proxy_set_header X-Real-IP $remote_addr;
-           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-           proxy_set_header X-Forwarded-Proto $scheme;
-       }
-   }
-   ```
-   Add SSL with Certbot:
-   ```bash
-   sudo certbot --nginx -d yourdomain.com
-   ```
+#### 5. Run Unified Server
+```bash
+uvicorn main:app --app-dir backend --host 0.0.0.0 --port 8000 --reload
+```
+Navigate to **[http://localhost:8000](http://localhost:8000)**. Interactive API documentation is available at **[http://localhost:8000/docs](http://localhost:8000/docs)**.
 
 ---
 
-## 🛠️ Project Architecture
+### Method 3: Docker & Docker Compose
 
+TracerEdge features an optimized multi-stage `Dockerfile`:
+```bash
+docker compose up -d --build
 ```
-Stock Market/
-├── backend/
-│   ├── main.py              # FastAPI server (API, WebSockets, SPA Static mounting)
-│   ├── data_engine.py       # Engine managing 7,640+ equities & official Bhavcopies
-│   ├── universe_manager.py  # Dual-exchange symbol and scrip indexing
-│   ├── universe_sync.py     # Exchange master synchronization
-│   ├── indicators.py        # Technical indicators (RSI, MACD, Bollinger, SMAs)
-│   ├── stocks_data.py       # Pre-indexed reference data and indices
-│   └── requirements.txt     # Python production dependencies
-├── frontend/
-│   ├── dist/                # Production build output served by FastAPI
-│   ├── src/
-│   │   ├── components/      # React components (Header, Table, Heatmap, ChartModal)
-│   │   ├── hooks/           # useLiveMarket real-time hook
-│   │   ├── services/        # Dynamic API & WebSocket client
-│   │   ├── App.jsx          # Root application
-│   │   └── index.css        # Minimalist institutional Dark/Light CSS
-│   ├── index.html           # TracerEdge HTML entrypoint
-│   └── package.json         # Frontend dependencies
-├── Dockerfile               # Production multi-stage Docker build
-├── docker-compose.yml       # Production Compose configuration
-├── start_traceredge.bat     # Windows production launcher
-├── start_traceredge.sh      # Linux/macOS production launcher
-└── README.md
+Your container will automatically compile the client, start the FastAPI server, and expose the application on port `8000`.
+
+---
+
+## 💡 Usage Examples
+
+### 1. Screening Stocks with the REST API
+
+Query top gainers on the NSE with RSI above 50:
+```bash
+curl "http://localhost:8000/api/stocks?exchange=NSE&min_rsi=50&sort_by=change_pct&sort_dir=desc&page_size=10"
 ```
+
+#### Sample Output:
+```json
+{
+  "count": 10,
+  "total": 842,
+  "page": 1,
+  "page_size": 10,
+  "total_pages": 85,
+  "stocks": [
+    {
+      "id": "RELIANCE:NSE",
+      "symbol": "RELIANCE",
+      "name": "Reliance Industries Ltd",
+      "exchange": "NSE",
+      "price": 2985.40,
+      "change": 35.20,
+      "change_pct": 1.19,
+      "day_high": 2998.00,
+      "day_low": 2950.00,
+      "volume": 4521000,
+      "rsi_14": 58.42,
+      "market_cap_cr": 2020450
+    }
+  ]
+}
+```
+
+---
+
+### 2. Multi-Index Instant Search
+
+Search by company name, ticker, or 6-digit BSE scrip code:
+```bash
+curl "http://localhost:8000/api/search?q=500325"
+```
+
+#### Sample Output:
+```json
+[
+  {
+    "id": "RELIANCE:BSE",
+    "symbol": "RELIANCE",
+    "name": "Reliance Industries Ltd",
+    "sector": "Energy & Petrochemicals",
+    "exchange": "BSE",
+    "bse_code": "500325",
+    "price": 2984.95,
+    "change": 34.80,
+    "change_pct": 1.18
+  }
+]
+```
+
+---
+
+### 3. Custom Strategy Query: Open = Low Bullish Surge
+
+Filter for stocks where today's intraday low equals the opening price:
+```bash
+curl -X POST "http://localhost:8000/api/screen" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "custom_rules": [
+      {
+        "left_field": "day_low",
+        "operator": "==",
+        "right_type": "field",
+        "right_field": "open",
+        "tolerance_pct": 0.15
+      }
+    ],
+    "custom_logic": "AND"
+  }'
+```
+
+---
+
+### 4. Connecting to the Live WebSocket Feed
+
+Connect via JavaScript:
+```javascript
+const ws = new WebSocket("ws://localhost:8000/ws/live");
+
+ws.onopen = () => console.log("Connected to TracerEdge WebSocket");
+
+ws.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  if (data.type === "TICK") {
+    console.log(`Received tick at ${data.timestamp}:`, data.stocks);
+  }
+};
+```
+
+---
+
+## 🗺️ Roadmap & Future Enhancements
+
+- [ ] **F&O & Options Screener**: Real-time NSE Open Interest (OI) tracking, Put-Call Ratio (PCR), and Max Pain calculations.
+- [ ] **Multi-Timeframe Technical Scans**: Real-time 5-min, 15-min, and Hourly supertrend & VWAP filters.
+- [ ] **Webhooks & Telegram Alerts**: Instant notifications when user strategies match custom screening criteria.
+- [ ] **Historical Strategy Backtesting**: Replay custom formula screens against historical Bhavcopy data.
+- [ ] **Redis Pub/Sub Integration**: Optional horizontal cluster scaling across multi-node ASGI workers.
+
+---
+
+## 🤝 Contributing
+
+Contributions, issues, and feature requests are welcome!
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ---
 
 ## ⚖️ License
-TracerEdge is released under the MIT License.
+
+Distributed under the **MIT License**. See [LICENSE](LICENSE) for more information.
+
+---
+
+## 👨‍💻 Author
+
+**Parv Shah**  
+- **GitHub**: [@parvshah](https://github.com/ParvShah2001)  
+- **Project Repository**: [TracerEdge on GitHub](https://github.com/ParvShah2001/traceredge)  
+
+*(For questions, issues, or consulting inquiries, feel free to open a GitHub Issue).*
